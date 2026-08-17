@@ -2,70 +2,43 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Configuración estricta para pantalla completa -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Calculadora</title>
     <style>
-        :root {
-            --bg-color: #000000;
-            --text-color: #ffffff;
-            --btn-digit: #333333;
-            --btn-op: #ff9f0a;
-            --btn-func: #a5a5a5;
+        :root { --bg-color: #000000; --text-color: #ffffff; --btn-digit: #333333; --btn-op: #ff9f0a; --btn-func: #a5a5a5; }
+        * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        
+        /* Aseguramos que el cuerpo ocupe todo el espacio visible */
+        body { 
+            margin: 0; background-color: var(--bg-color); color: var(--text-color); 
+            font-family: -apple-system, sans-serif; height: 100vh; height: calc(100vh + env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; overflow: hidden; user-select: none; -webkit-user-select: none;
         }
-        body {
-            margin: 0; background-color: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-        }
-        #history {
-            height: 40px; text-align: right; padding: 20px 20px 0;
-            font-size: 20px; color: rgba(255,255,255,0.6); overflow: hidden; white-space: nowrap;
-        }
-        #display {
-            flex: 1; display: flex; align-items: flex-end; justify-content: flex-end;
-            padding: 20px; font-size: 80px; font-weight: 200; overflow: hidden;
-        }
-        .grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px;
-        }
-        button {
-            aspect-ratio: 1/1; border-radius: 50%; border: none; font-size: 32px;
-            color: white; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
-            display: flex; align-items: center; justify-content: center;
-        }
+
+        #status-dot { position: fixed; top: 15px; right: 15px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
+        #status-dot.show { opacity: 1; }
+        
+        #history { height: 60px; text-align: right; padding: 10px 20px; font-size: 24px; color: rgba(255,255,255,0.8); overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; }
+        #display { flex: 1; display: flex; align-items: flex-end; justify-content: flex-end; padding: 20px; font-size: 80px; font-weight: 200; overflow: hidden; }
+        
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px; padding-bottom: 40px; }
+        button { aspect-ratio: 1/1; border-radius: 50%; border: none; font-size: 32px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-touch-callout: none; }
         button:active { filter: brightness(1.5); }
+        
         .digit { background-color: var(--btn-digit); }
         .op { background-color: var(--btn-op); }
         .func { background-color: var(--btn-func); color: black; }
         .zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 35px; }
         
-        /* Notificación tipo Toast discreta */
-        #toast {
-            position: fixed; top: 10px; left: 50%; transform: translateX(-50%) translateY(-50px);
-            background: rgba(40, 40, 40, 0.9); color: #fff; padding: 6px 16px; border-radius: 20px;
-            font-size: 13px; font-weight: 400; z-index: 200; opacity: 0; transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none; border: 1px solid rgba(255,255,255,0.15);
-        }
-        #toast.show {
-            transform: translateX(-50%) translateY(0); opacity: 1;
-        }
-
-        /* Ajustes Ocultos */
-        #settings-dialog {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100; overflow-y: auto; padding: 20px; box-sizing: border-box;
-            color: white;
-        }
-        #settings-dialog label, #settings-dialog h2 {
-            color: white;
-        }
-        #settings-dialog input, #settings-dialog select {
-            padding: 5px; font-size: 16px; margin-top: 5px; background: #222; color: white; border: 1px solid #555;
-        }
+        #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 20px; color: white; }
     </style>
 </head>
 <body>
-    <div id="toast">Sistema Listo</div>
+    <div id="status-dot"></div>
     <div id="history"></div>
     <div id="display" ontouchstart="handleDisplayTouch()">0</div>
     <div class="grid">
@@ -92,160 +65,60 @@
 
     <!-- Menú de Ajustes -->
     <div id="settings-dialog">
-        <h2>Ajustes Mágicos</h2>
-        <label>Modo: <br>
-            <select id="magic-mode">
-                <option value="time">Fecha / Hora</option>
-                <option value="fixed">Resultado Fijo</option>
-            </select>
-        </label><br><br>
-        <label>Número Fijo: <br><input type="number" id="fixed-val" value="12345"></label><br><br>
-        <label>Minutos Offset: <br><input type="number" id="offset-val" value="0"></label><br><br>
-        <button onclick="closeSettings()" style="background: #2ecc71; border-radius: 8px; aspect-ratio: auto; padding: 10px 20px; color: white; border: none; font-weight: bold;">Guardar y Cerrar</button>
+        <h2>Ajustes</h2>
+        <label>Modo:<br><select id="magic-mode"><option value="time">Fecha / Hora</option><option value="fixed">Resultado Fijo</option></select></label><br><br>
+        <label>Formato Fecha:<br><select id="date-format"><option value="ddmmaa">DD/MM/AA</option><option value="ddmmaaaa">DD/MM/AAAA</option></select></label><br><br>
+        <label>Número Fijo:<br><input type="number" id="fixed-val" value="12345"></label><br><br>
+        <button onclick="closeSettings()" style="padding:10px 20px; background:#2ecc71; border:none; color:white; font-weight:bold;">Guardar</button>
     </div>
 
     <script>
-        let display = "0";
-        let history = "";
-        let armed = false;
-        let pendingOp = null;
-        let prevVal = null;
-        let startFresh = true;
-        let revealIdx = 0;
-        let lastTap = 0;
-        let cTimer;
-        let panicCount = 0;
-        let lastPanicTime = 0;
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 1500);
-        }
-
-        function updateUI() {
-            document.getElementById('display').innerText = display;
-            document.getElementById('history').innerText = history;
-            if (display.length > 8) document.getElementById('display').style.fontSize = "40px";
-            else document.getElementById('display').style.fontSize = "80px";
-        }
-
+        let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0;
+        
+        function updateUI() { document.getElementById('display').innerText = display; document.getElementById('history').innerText = history; }
+        function toggleStatusDot(show) { document.getElementById('status-dot').className = show ? 'show' : ''; }
+        
         function press(key) {
             const now = Date.now();
-            
-            if (key === '=') {
-                if (now - lastPanicTime < 2000) panicCount++;
-                else panicCount = 1;
-                lastPanicTime = now;
-                if (panicCount >= 3) { window.location.reload(); return; }
-            }
-
-            if (!isNaN(key) || key === '.') {
-                handleDigit(key);
-            } else if (key === 'back') {
-                if (display.length > 1) {
-                    display = display.slice(0, -1);
-                } else {
-                    display = "0";
-                    startFresh = true;
-                }
-            } else {
-                handleOp(key);
-            }
+            if (key === '=') { if (now - lastPanicTime < 2000) panicCount++; else panicCount = 1; lastPanicTime = now; if (panicCount >= 3) { window.location.reload(); return; } }
+            if (!isNaN(key) || key === '.') handleDigit(key);
+            else if (key === 'back') { display = display.length > 1 ? display.slice(0, -1) : "0"; }
+            else handleOp(key);
             updateUI();
         }
-
+        
         function handleDigit(d) {
             if (armed) {
                 let target = getTarget();
-                if (pendingOp && prevVal !== null) {
-                    let targetNum = parseFloat(target);
-                    let diff = targetNum - prevVal;
-                    let diffStr = Math.abs(diff).toString().replace(".", "");
-                    if (revealIdx < diffStr.length) {
-                        display = (startFresh) ? diffStr[revealIdx] : display + diffStr[revealIdx];
-                        revealIdx++;
-                        startFresh = false;
-                    }
-                    return;
-                } else {
-                    if (revealIdx < target.length) {
-                        display = (revealIdx === 0) ? target[revealIdx] : display + target[revealIdx];
-                        revealIdx++;
-                        startFresh = false;
-                    }
-                    return;
-                }
-            }
-            if (startFresh || display === "0") { display = d; startFresh = false; }
-            else display += d;
+                if (pendingOp && prevVal !== null) { let diffStr = Math.abs(parseFloat(target) - prevVal).toString().replace(".", ""); if (revealIdx < diffStr.length) { display = (startFresh) ? diffStr[revealIdx] : display + diffStr[revealIdx]; revealIdx++; startFresh = false; } }
+                else { if (revealIdx < target.length) { display = (revealIdx === 0) ? target[revealIdx] : display + target[revealIdx]; revealIdx++; startFresh = false; } }
+            } else { if (startFresh || display === "0") { display = d; startFresh = false; } else display += d; }
         }
-
+        
         function handleOp(op) {
-            if (op === 'C') {
-                display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true;
-            } else if (op === '=') {
-                if (armed) {
-                    display = getTarget();
-                    history += " " + display + " =";
-                    armed = false;
-                } else if (prevVal !== null && pendingOp) {
-                    history += " " + display + " =";
-                    try {
-                        display = eval(prevVal + pendingOp.replace('×','*').replace('÷','/') + display).toString();
-                    } catch (e) {
-                        display = "Error";
-                    }
-                }
+            if (op === 'C') { display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true; }
+            else if (op === '=') {
+                if (armed) { display = getTarget(); history += " " + display + " ="; armed = false; toggleStatusDot(false); }
+                else if (prevVal !== null && pendingOp) { history += " " + display + " ="; display = eval(prevVal + pendingOp.replace('×','*').replace('÷','/') + display).toString(); }
                 prevVal = null; pendingOp = null; startFresh = true;
-            } else if (op === '%') {
-                if (!isNaN(display)) {
-                    display = (parseFloat(display) / 100).toString();
-                }
-            } else {
-                prevVal = parseFloat(display);
-                pendingOp = op;
-                history = display + " " + op;
-                startFresh = true;
-                if (armed) revealIdx = 0;
-            }
+            } else { prevVal = parseFloat(display); pendingOp = op; history = display + " " + op; startFresh = true; if (armed) revealIdx = 0; }
         }
-
+        
         function getTarget() {
-            const mode = document.getElementById('magic-mode').value;
-            if (mode === 'fixed') return document.getElementById('fixed-val').value;
-            
-            const offset = parseInt(document.getElementById('offset-val').value) || 0;
-            const now = new Date(Date.now() + offset * 60000);
+            if (document.getElementById('magic-mode').value === 'fixed') return document.getElementById('fixed-val').value;
+            const now = new Date();
             const d = String(now.getDate()).padStart(2, '0');
             const m = String(now.getMonth() + 1).padStart(2, '0');
-            const y = String(now.getFullYear());
+            const y = document.getElementById('date-format').value === 'ddmmaa' ? String(now.getFullYear()).slice(-2) : String(now.getFullYear());
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(now.getMinutes()).padStart(2, '0');
             return d + m + y + hh + mm;
         }
-
-        function handleDisplayTouch() {
-            const now = Date.now();
-            if (now - lastTap < 300) { 
-                armed = !armed; 
-                showToast(armed ? "Sistema Listo" : "Modo Normal"); 
-            }
-            lastTap = now;
-        }
-
-        function startCHold() { 
-            cTimer = setTimeout(() => { document.getElementById('settings-dialog').style.display = "block"; }, 3000); 
-        }
-        function endCHold() { 
-            clearTimeout(cTimer); 
-        }
-        function closeSettings() { 
-            document.getElementById('settings-dialog').style.display = "none"; 
-        }
+        
+        function handleDisplayTouch() { const now = Date.now(); if (now - lastTap < 300) { armed = !armed; toggleStatusDot(armed); } lastTap = now; }
+        function startCHold() { cTimer = setTimeout(() => { document.getElementById('settings-dialog').style.display = "block"; }, 2000); }
+        function endCHold() { clearTimeout(cTimer); }
+        function closeSettings() { document.getElementById('settings-dialog').style.display = "none"; }
     </script>
 </body>
 </html>
