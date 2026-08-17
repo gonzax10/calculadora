@@ -109,8 +109,8 @@
         <button class="digit" onclick="press('3')">3</button>
         <button class="op" onclick="press('+')">+</button>
         
-        <button class="digit zero" onclick="press('0')">0</button>
         <button class="digit" onclick="press('+/-')">±</button>
+        <button class="digit zero" onclick="press('0')">0</button>
         <button class="digit" onclick="press('.')">,</button>
         <button class="op" onclick="press('=')">=</button>
     </div>
@@ -169,7 +169,21 @@
             if (isHolding) return;
 
             const now = Date.now();
-            if (key === '=') { if (now - lastPanicTime < 2000) panicCount++; else panicCount = 1; lastPanicTime = now; if (panicCount >= 3) { window.location.reload(); return; } }
+            
+            // Función de pánico: 3 toques seguidos al botón "=" cierran/recargan la página
+            if (key === '=') {
+                if (now - lastPanicTime < 2000) {
+                    panicCount++;
+                } else {
+                    panicCount = 1;
+                }
+                lastPanicTime = now;
+                
+                if (panicCount >= 3) {
+                    window.location.href = "about:blank"; // Cierra o blanquea la página al instante
+                    return;
+                }
+            }
             
             if (key === 'C') {
                 display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true;
