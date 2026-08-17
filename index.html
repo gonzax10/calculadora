@@ -64,21 +64,13 @@
             font-size: 32px; font-weight: 400; color: white; cursor: pointer; 
             display: flex; align-items: center; justify-content: center; 
             transition: filter 0.1s;
+            width: 100%;
         }
         button:active { filter: brightness(1.4); }
         
         .digit { background-color: var(--btn-digit); color: #ffffff; }
         .op { background-color: var(--btn-op); color: #ffffff; font-size: 38px; }
         .func { background-color: var(--btn-func); color: var(--btn-func-text); font-weight: 400; }
-        
-        /* El 0 ocupa 2 columnas y mantiene proporciones exactas */
-        .zero { 
-            grid-column: span 2; 
-            aspect-ratio: auto; 
-            border-radius: 40px; 
-            justify-content: flex-start; 
-            padding-left: 32px; 
-        }
         
         #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 25px; color: white; cursor: default; }
         #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -97,32 +89,38 @@
     </div>
 
     <div class="grid">
+        <!-- Hilera 1 -->
         <button class="func" onclick="press('C')" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()"><span id="c-label">AC</span></button>
         <button class="func" onclick="press('back')">⌫</button>
         <button class="func" onclick="press('%')">%</button>
         <button class="op" onclick="press('÷')">÷</button>
         
+        <!-- Hilera 2 -->
         <button class="digit" onclick="press('7')">7</button>
         <button class="digit" onclick="press('8')">8</button>
         <button class="digit" onclick="press('9')">9</button>
         <button class="op" onclick="press('×')">×</button>
         
+        <!-- Hilera 3 -->
         <button class="digit" onclick="press('4')">4</button>
         <button class="digit" onclick="press('5')">5</button>
         <button class="digit" onclick="press('6')">6</button>
         <button class="op" onclick="press('-')">-</button>
         
+        <!-- Hilera 4 -->
         <button class="digit" onclick="press('1')">1</button>
         <button class="digit" onclick="press('2')">2</button>
         <button class="digit" onclick="press('3')">3</button>
         <button class="op" onclick="press('+')">+</button>
         
+        <!-- Hilera 5: Todos redondos y de una sola columna -->
         <button class="digit" onclick="press('+/-')">±</button>
-        <button class="digit zero" onclick="press('0')">0</button>
+        <button class="digit" onclick="press('0')">0</button>
         <button class="digit" onclick="press('.')">,</button>
         <button class="op" onclick="press('=')">=</button>
     </div>
 
+    <!-- Menú de Ajustes Mágicos -->
     <div id="settings-dialog">
         <h2>Ajustes Mágicos</h2>
         <label>Modo de Magia:<br>
@@ -178,7 +176,6 @@
 
             const now = Date.now();
             
-            // Función de pánico: 3 toques seguidos en el botón "=" limpian la pantalla al instante
             if (key === '=') {
                 if (now - lastPanicTime < 2000) {
                     panicCount++;
