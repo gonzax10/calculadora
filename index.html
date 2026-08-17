@@ -31,7 +31,6 @@
         #status-dot { position: fixed; top: 15px; right: 25px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
         #status-dot.show { opacity: 1; }
         
-        /* Contenedor exacto al estilo iOS empujado hacia arriba del teclado */
         #screen-container {
             display: flex; flex-direction: column; justify-content: flex-end;
             padding: 0 24px 15px 24px; width: 100%;
@@ -71,7 +70,15 @@
         .digit { background-color: var(--btn-digit); color: #ffffff; }
         .op { background-color: var(--btn-op); color: #ffffff; font-size: 38px; }
         .func { background-color: var(--btn-func); color: var(--btn-func-text); font-weight: 400; }
-        .zero { grid-column: span 2; aspect-ratio: auto; border-radius: 40px; justify-content: flex-start; padding-left: 32px; }
+        
+        /* El 0 ahora es redondo perfecto (aspect-ratio 1/1) y ocupa 2 columnas mediante grid-column */
+        .zero { 
+            grid-column: span 2; 
+            aspect-ratio: 2 / 1; 
+            border-radius: 40px; 
+            justify-content: flex-start; 
+            padding-left: 32px; 
+        }
         
         #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 25px; color: white; cursor: default; }
         #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -115,7 +122,6 @@
         <button class="op" onclick="press('=')">=</button>
     </div>
 
-    <!-- Menú de Ajustes -->
     <div id="settings-dialog">
         <h2>Ajustes Mágicos</h2>
         <label>Modo de Magia:<br>
@@ -153,7 +159,6 @@
             dispElem.innerText = display.replace('.', ',');
             document.getElementById('history').innerText = history;
             
-            // Cambiar dinámicamente entre AC y C según si hay datos escritos
             document.getElementById('c-label').innerText = (display === "0" && history === "") ? "AC" : "C";
 
             dispElem.style.fontSize = "78px";
