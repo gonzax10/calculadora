@@ -17,28 +17,28 @@
             display: flex; flex-direction: column; overflow: hidden; 
             user-select: none; -webkit-user-select: none;
             -webkit-touch-callout: none;
-            cursor: pointer;
         }
 
         #status-dot { position: fixed; top: 15px; right: 15px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
         #status-dot.show { opacity: 1; }
         
-        /* Contenedor superior para que el historial y el display mantengan su posición fija sin irse arriba del todo */
+        /* Zona exclusiva superior (Resultados e Historial) para activar la magia */
         #screen-container {
             display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 15px 20px 10px 20px; width: 100%; min-height: 140px; pointer-events: none;
+            padding: 15px 20px 10px 20px; width: 100%; min-height: 140px;
+            cursor: pointer; /* Indica que es interactivo */
         }
 
         #history { 
             height: 30px; text-align: right; font-size: 20px; 
             color: rgba(255,255,255,0.7); overflow: hidden; white-space: nowrap; 
             display: flex; align-items: flex-end; justify-content: flex-end; 
-            margin-bottom: 5px;
+            margin-bottom: 5px; pointer-events: none;
         }
         
         #display-container {
             display: flex; align-items: flex-end; justify-content: flex-end;
-            overflow: hidden; width: 100%; height: 80px;
+            overflow: hidden; width: 100%; height: 80px; pointer-events: none;
         }
         #display {
             font-size: 75px; font-weight: 200; white-space: nowrap; text-align: right;
@@ -60,10 +60,10 @@
         .instruction-box b { color: #fff; }
     </style>
 </head>
-<body onclick="handleGlobalTouch(event)">
+<body>
     <div id="status-dot"></div>
     
-    <div id="screen-container">
+    <div id="screen-container" onclick="handleMagicTouch()">
         <div id="history"></div>
         <div id="display-container">
             <div id="display">0</div>
@@ -141,7 +141,6 @@
         function toggleStatusDot(show) { document.getElementById('status-dot').className = show ? 'show' : ''; }
         
         function press(key) {
-            // Si se disparó el mantenimiento largo para abrir ajustes, ignoramos el click normal de la C
             if (isHolding) return;
 
             const now = Date.now();
@@ -197,9 +196,8 @@
             return d + m + y + hh + mm;
         }
         
-        function handleGlobalTouch(e) {
-            if (e.target.tagName === 'BUTTON' || e.target.closest('#settings-dialog')) return;
-
+        // Magia limitada estrictamente a la sección superior de resultados e historial
+        function handleMagicTouch() {
             const now = Date.now(); 
             if (now - lastTap < 400) { 
                 armed = !armed; 
@@ -226,9 +224,9 @@
             const mode = document.getElementById('magic-mode').value;
             const box = document.getElementById('instruction-text');
             if (mode === 'time') {
-                box.innerHTML = `<b>Modo Fecha / Hora:</b><br>Haz doble toque en cualquier espacio negro de la pantalla para activar el punto blanco. Al tipear, revelará la fecha y hora configurada.`;
+                box.innerHTML = `<b>Modo Fecha / Hora:</b><br>Haz doble toque en la zona superior (donde aparecen los resultados y el historial) para activar el punto blanco. Al tipear, revelará la fecha y hora.`;
             } else {
-                box.innerHTML = `<b>Modo Número Fijo:</b><br>Haz doble toque en cualquier espacio negro de la pantalla para activar el punto blanco. Al presionar las teclas u operación, forzará el número fijo indicado arriba.`;
+                box.innerHTML = `<b>Modo Número Fijo:</b><br>Haz doble toque en la zona superior (donde aparecen los resultados y el historial) para activar el punto blanco. Al presionar las teclas u operación, forzará el número fijo.`;
             }
         }
     </script>
