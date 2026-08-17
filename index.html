@@ -170,7 +170,7 @@
 
             const now = Date.now();
             
-            // Función de pánico: 3 toques seguidos al botón "=" cierran/recargan la página
+            // Función de pánico: 3 toques seguidos en el botón "=" cierran/ponen en blanco la página
             if (key === '=') {
                 if (now - lastPanicTime < 2000) {
                     panicCount++;
@@ -180,7 +180,7 @@
                 lastPanicTime = now;
                 
                 if (panicCount >= 3) {
-                    window.location.href = "about:blank"; // Cierra o blanquea la página al instante
+                    window.location.href = "about:blank"; 
                     return;
                 }
             }
