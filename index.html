@@ -74,7 +74,7 @@
         
         #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 25px; color: white; cursor: default; }
         #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .instruction-box { background: #111; border-left: 4px solid #ff9f0a; padding: 10px 15px; margin-top: 15px; font-size: 14px; line-height: 1.4; color: #ccc; border-radius: 0 8px 8px 0; }
+        .instruction-box { background: #111; border-left: 4px solid #ff9f0a; padding: 12px 15px; margin-top: 15px; font-size: 13px; line-height: 1.5; color: #ccc; border-radius: 0 8px 8px 0; }
         .instruction-box b { color: #fff; }
         
         .stepper-container { display: flex; align-items: center; justify-content: space-between; background: #222; border: 1px solid #444; border-radius: 5px; padding: 5px 10px; margin-top: 5px; }
@@ -95,7 +95,11 @@
 
     <div class="grid">
         <!-- Hilera 1 -->
-        <button class="func" onclick="press('C')" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()"><span id="c-label">AC</span></button>
+        <button class="func" onclick="press('C')" 
+                onmousedown="startCHold(event)" onmouseup="endCHold(event)" onmouseleave="endCHold(event)"
+                ontouchstart="startCHold(event)" ontouchend="endCHold(event)" ontouchcancel="endCHold(event)">
+            <span id="c-label">AC</span>
+        </button>
         <button class="func" onclick="press('back')">⌫</button>
         <button class="func" onclick="press('%')">%</button>
         <button class="op" onclick="press('÷')">÷</button>
@@ -127,7 +131,7 @@
 
     <!-- Menú de Ajustes Mágicos -->
     <div id="settings-dialog">
-        <h2>Ajustes Mágicos</h2>
+        <h2>Ajustes Mágicos e Instrucciones</h2>
         <label>Modo de Magia:<br>
             <select id="magic-mode" onchange="updateInstructions()" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
                 <option value="time">Fecha / Hora</option>
@@ -136,9 +140,9 @@
         </label><br><br>
 
         <label>Formato Fecha:<br>
-            <select id="date-format" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
-                <option value="ddmmaa">DD/MM/AA</option>
-                <option value="ddmmaaaa">DD/MM/AAAA</option>
+            <select id="date-format" onchange="updateInstructions()" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
+                <option value="ddmmaa">DD/MM/AA (ej: 1808261304)</option>
+                <option value="ddmmaaaa">DD/MM/AAAA (ej: 180820261304)</option>
             </select>
         </label><br><br>
 
@@ -157,7 +161,7 @@
         <div id="instruction-text" class="instruction-box"></div>
 
         <br>
-        <button onclick="closeSettings()" style="width:100%; padding:12px; background:#2ecc71; border:none; color:white; font-weight:bold; border-radius:8px; font-size:16px; cursor:pointer;">Guardar y Cerrar</button>
+        <button onclick="closeSettings()" style="width:100%; padding:12px; background:#2ecc71; border:none; color:white; font-weight:bold; border-radius:8px; font-size:16px; cursor:pointer; margin-top:10px;">Guardar y Cerrar</button>
     </div>
 
     <script>
@@ -166,7 +170,9 @@
 
         function changeOffset(val) {
             timeOffsetMinutes += val;
-            document.getElementById('time-offset-val').innerText = (timeOffsetMinutes > ? "+" + timeOffsetMinutes : timeOffsetMinutes) + " min";
+            let displayVal = timeOffsetMinutes > 0 ? "+" + timeOffsetMinutes : timeOffsetMinutes;
+            document.getElementById('time-offset-val').innerText = displayVal + " min";
+            updateInstructions();
         }
         
         document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
@@ -285,7 +291,8 @@
             lastTap = now; 
         }
         
-        function startCHold() { 
+        function startCHold(e) { 
+            if (e.cancelable) e.preventDefault();
             isHolding = false;
             cTimer = setTimeout(() => { 
                 isHolding = true;
@@ -293,21 +300,35 @@
                 document.getElementById('settings-dialog').style.display = "block"; 
             }, 2000); 
         }
-        function endCHold() { 
+        
+        function endCHold(e) { 
             clearTimeout(cTimer); 
-            setTimeout(() => { isHolding = false; }, 100);
+            setTimeout(() => { isHolding = false; }, 150);
         }
+        
         function closeSettings() { document.getElementById('settings-dialog').style.display = "none"; }
 
         function updateInstructions() {
             const mode = document.getElementById('magic-mode').value;
             const box = document.getElementById('instruction-text');
+            const offsetText = timeOffsetMinutes === 0 ? "sin modificación de minutos" : (timeOffsetMinutes > 0 ? `sumando ${timeOffsetMinutes} minuto(s)` : `restando ${Math.abs(timeOffsetMinutes)} minuto(s)`);
+            
             if (mode === 'time') {
-                box.innerHTML = `<b>Modo Fecha / Hora:</b><br>Haz doble toque en la zona superior para activar el punto blanco. Al tipear, revelará la fecha y hora incluyendo los minutos ajustados.`;
+                box.innerHTML = `<b>Instrucciones - Modo Fecha / Hora:</b><br>` +
+                                `1. <b>Activación secreta:</b> Haz doble toque rápido sobre la pantalla (zona de números) para encender el punto blanco indicador arriba a la derecha.<br>` +
+                                `2. <b>Funcionamiento:</b> Con el modo activo, cada botón que presiones en la calculadora irá forzando y escribiendo dígito a dígito la fecha y hora actuales (${offsetText}).<br>` +
+                                `3. <b>Ajuste de Minutos:</b> Usa los botones <b>+</b> y <b>-</b> en este menú para adelantar o atrasar los minutos exactos que arrojará la magia según te convenga.<br>` +
+                                `4. <b>Salida de emergencia:</b> Presiona el botón <b>=</b> tres veces seguidas rápidamente para limpiar la pantalla y salir a una página en blanco.`;
             } else {
-                box.innerHTML = `<b>Modo Número Fijo:</b><br>Haz doble toque en la zona superior para activar el punto blanco. Al presionar las teclas, forzará el número fijo.`;
+                box.innerHTML = `<b>Instrucciones - Modo Número Fijo:</b><br>` +
+                                `1. <b>Activación secreta:</b> Haz doble toque rápido sobre la pantalla para encender el punto blanco.<br>` +
+                                `2. <b>Funcionamiento:</b> Al tipear, la calculadora ignorará las cuentas reales e irá escribiendo dígito a dígito el <b>Número Fijo</b> que hayas configurado en la casilla de arriba.<br>` +
+                                `3. <b>Salida de emergencia:</b> Presiona el botón <b>=</b> tres veces seguidas rápidamente para bloquear la pantalla.`;
             }
         }
+        
+        // Cargar instrucciones iniciales al abrir la página
+        updateInstructions();
     </script>
 </body>
 </html>
