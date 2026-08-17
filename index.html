@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -19,7 +19,7 @@
             -webkit-touch-callout: none;
         }
 
-        #status-dot { position: fixed; top: 15px; right: 15px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
+        #status-dot { position: fixed; top: 15px; right: 15px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
         #status-dot.show { opacity: 1; }
         
         #history { height: 40px; text-align: right; padding: 5px 20px 0; font-size: 20px; color: rgba(255,255,255,0.8); overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; white-space: nowrap; }
@@ -27,6 +27,7 @@
         #display-container {
             flex: 1; display: flex; align-items: flex-end; justify-content: flex-end;
             padding: 10px 20px; overflow: hidden; width: 100%;
+            cursor: pointer;
         }
         #display {
             font-size: 75px; font-weight: 200; white-space: nowrap; text-align: right;
@@ -51,8 +52,8 @@
 <body>
     <div id="status-dot"></div>
     <div id="history"></div>
-    <div id="display-container">
-        <div id="display" ontouchstart="handleDisplayTouch()">0</div>
+    <div id="display-container" onclick="handleDisplayTouch()">
+        <div id="display">0</div>
     </div>
     <div class="grid">
         <button class="func" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()">C</button>
@@ -76,23 +77,24 @@
         <button class="op" onclick="press('=')">=</button>
     </div>
 
+    <!-- Menú de Ajustes -->
     <div id="settings-dialog">
         <h2>Ajustes Mágicos</h2>
-        <label>Modo:<br>
+        <label>Modo de Magia:<br>
             <select id="magic-mode" onchange="updateInstructions()" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
                 <option value="time">Fecha / Hora</option>
-                <option value="fixed">Resultado Fijo</option>
+                <option value="fixed">Número Fijo</option>
             </select>
         </label><br><br>
 
         <label>Formato Fecha:<br>
             <select id="date-format" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
-                <option value="ddmmaa">DD/MM/AA (Ej: 1808261205)</option>
-                <option value="ddmmaaaa">DD/MM/AAAA (Ej: 180820261205)</option>
+                <option value="ddmmaa">DD/MM/AA</option>
+                <option value="ddmmaaaa">DD/MM/AAAA</option>
             </select>
         </label><br><br>
 
-        <label>Número Fijo:<br>
+        <label>Número Fijo (si usas ese modo):<br>
             <input type="number" id="fixed-val" value="12345" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
         </label>
 
@@ -151,7 +153,10 @@
         }
         
         function getTarget() {
-            if (document.getElementById('magic-mode').value === 'fixed') return document.getElementById('fixed-val').value;
+            const mode = document.getElementById('magic-mode').value;
+            if (mode === 'fixed') {
+                return document.getElementById('fixed-val').value;
+            }
             const now = new Date();
             const d = String(now.getDate()).padStart(2, '0');
             const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -161,7 +166,14 @@
             return d + m + y + hh + mm;
         }
         
-        function handleDisplayTouch() { const now = Date.now(); if (now - lastTap < 300) { armed = !armed; toggleStatusDot(armed); } lastTap = now; }
+        function handleDisplayTouch() { 
+            const now = Date.now(); 
+            if (now - lastTap < 400) { 
+                armed = !armed; 
+                toggleStatusDot(armed); 
+            } 
+            lastTap = now; 
+        }
         
         function startCHold() { 
             cTimer = setTimeout(() => { 
@@ -172,17 +184,15 @@
         function endCHold() { clearTimeout(cTimer); }
         function closeSettings() { document.getElementById('settings-dialog').style.display = "none"; }
 
-        // Instructivo dinámico en los ajustes
         function updateInstructions() {
             const mode = document.getElementById('magic-mode').value;
             const box = document.getElementById('instruction-text');
             if (mode === 'time') {
-                box.innerHTML = `<b>Instructivo (Fecha/Hora):</b><br>1. Activa la magia haciendo doble toque en el display (verás el punto blanco arriba a la derecha).<br>2. Al pulsar cualquier número, la calculadora revelará automáticamente los dígitos correspondientes al <b>Día, Mes, Año y Hora actual</b> (según el formato seleccionado).`;
+                box.innerHTML = `<b>Modo Fecha / Hora:</b><br>Haz doble toque en la zona de números para activar el punto blanco. Al tipear, revelará la fecha y hora configurada.`;
             } else {
-                box.innerHTML = `<b>Instructivo (Resultado Fijo):</b><br>1. Activa la magia haciendo doble toque en el display (punto blanco visible).<br>2. Al presionar cualquier número o realizar una operación matemática, la calculadora te forzará de manera invisible el <b>Número Fijo</b> que configuraste previamente al presionar el igual (=).`;
+                box.innerHTML = `<b>Modo Número Fijo:</b><br>Haz doble toque en la zona de números para activar el punto blanco. Al presionar las teclas u operación, forzará el número fijo indicado arriba.`;
             }
         }
     </script>
 </body>
 </html>
- 
