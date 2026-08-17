@@ -70,7 +70,15 @@
         .digit { background-color: var(--btn-digit); color: #ffffff; }
         .op { background-color: var(--btn-op); color: #ffffff; font-size: 38px; }
         .func { background-color: var(--btn-func); color: var(--btn-func-text); font-weight: 400; }
-        .zero { justify-content: flex-start; padding-left: 32px; border-radius: 40px; }
+        
+        /* El 0 ocupa 2 columnas y mantiene proporciones exactas */
+        .zero { 
+            grid-column: span 2; 
+            aspect-ratio: auto; 
+            border-radius: 40px; 
+            justify-content: flex-start; 
+            padding-left: 32px; 
+        }
         
         #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 25px; color: white; cursor: default; }
         #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -90,7 +98,7 @@
 
     <div class="grid">
         <button class="func" onclick="press('C')" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()"><span id="c-label">AC</span></button>
-        <button class="func" onclick="press('+/-')">±</button>
+        <button class="func" onclick="press('back')">⌫</button>
         <button class="func" onclick="press('%')">%</button>
         <button class="op" onclick="press('÷')">÷</button>
         
@@ -170,7 +178,7 @@
 
             const now = Date.now();
             
-            // Función de pánico: 3 toques seguidos en el botón "=" cierran/ponen en blanco la página
+            // Función de pánico: 3 toques seguidos en el botón "=" limpian la pantalla al instante
             if (key === '=') {
                 if (now - lastPanicTime < 2000) {
                     panicCount++;
@@ -187,14 +195,14 @@
             
             if (key === 'C') {
                 display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true;
+            } else if (key === 'back') {
+                display = display.length > 1 ? display.slice(0, -1) : "0";
             } else if (!isNaN(key) || key === '.') {
                 handleDigit(key);
             } else if (key === '+/-') {
                 if (display !== "0") {
                     display = display.startsWith('-') ? display.slice(1) : '-' + display;
                 }
-            } else if (key === 'back') {
-                display = display.length > 1 ? display.slice(0, -1) : "0";
             } else {
                 handleOp(key);
             }
@@ -204,8 +212,12 @@
         function handleDigit(d) {
             if (armed) {
                 let target = getTarget();
-                if (pendingOp && prevVal !== null) { let diffStr = Math.abs(parseFloat(target) - prevVal).toString().replace(".", ""); if (revealIdx < diffStr.length) { display = (startFresh) ? diffStr[revealIdx] : display + diffStr[revealIdx]; revealIdx++; startFresh = false; } }
-                else { if (revealIdx < target.length) { display = (revealIdx === 0) ? target[revealIdx] : display + target[revealIdx]; revealIdx++; startFresh = false; } }
+                if (pendingOp && prevVal !== null) { 
+                    let diffStr = Math.abs(parseFloat(target) - prevVal).toString().replace(".", ""); 
+                    if (revealIdx < diffStr.length) { display = (startFresh) ? diffStr[revealIdx] : display + diffStr[revealIdx]; revealIdx++; startFresh = false; } 
+                } else { 
+                    if (revealIdx < target.length) { display = (revealIdx === 0) ? target[revealIdx] : display + target[revealIdx]; revealIdx++; startFresh = false; } 
+                }
             } else { 
                 if (d === '.') {
                     if (!display.includes('.')) display += '.';
