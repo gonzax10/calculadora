@@ -1,9 +1,8 @@
-<!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Configuración estricta para pantalla completa -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
@@ -12,21 +11,30 @@
         :root { --bg-color: #000000; --text-color: #ffffff; --btn-digit: #333333; --btn-op: #ff9f0a; --btn-func: #a5a5a5; }
         * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
-        /* Aseguramos que el cuerpo ocupe todo el espacio visible */
         body { 
             margin: 0; background-color: var(--bg-color); color: var(--text-color); 
-            font-family: -apple-system, sans-serif; height: 100vh; height: calc(100vh + env(safe-area-inset-bottom));
-            display: flex; flex-direction: column; overflow: hidden; user-select: none; -webkit-user-select: none;
+            font-family: -apple-system, sans-serif; height: 100vh; height: 100dvh;
+            display: flex; flex-direction: column; overflow: hidden; 
+            user-select: none; -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         #status-dot { position: fixed; top: 15px; right: 15px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
         #status-dot.show { opacity: 1; }
         
-        #history { height: 60px; text-align: right; padding: 10px 20px; font-size: 24px; color: rgba(255,255,255,0.8); overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; }
-        #display { flex: 1; display: flex; align-items: flex-end; justify-content: flex-end; padding: 20px; font-size: 80px; font-weight: 200; overflow: hidden; }
+        #history { height: 40px; text-align: right; padding: 5px 20px 0; font-size: 20px; color: rgba(255,255,255,0.8); overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; white-space: nowrap; }
         
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px; padding-bottom: 40px; }
-        button { aspect-ratio: 1/1; border-radius: 50%; border: none; font-size: 32px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-touch-callout: none; }
+        #display-container {
+            flex: 1; display: flex; align-items: flex-end; justify-content: flex-end;
+            padding: 10px 20px; overflow: hidden; width: 100%;
+        }
+        #display {
+            font-size: 75px; font-weight: 200; white-space: nowrap; text-align: right;
+            line-height: 1;
+        }
+        
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+        button { aspect-ratio: 1/1; border-radius: 50%; border: none; font-size: 30px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         button:active { filter: brightness(1.5); }
         
         .digit { background-color: var(--btn-digit); }
@@ -34,13 +42,18 @@
         .func { background-color: var(--btn-func); color: black; }
         .zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 35px; }
         
-        #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 20px; color: white; }
+        #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 25px; color: white; }
+        #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .instruction-box { background: #111; border-left: 4px solid #ff9f0a; padding: 10px 15px; margin-top: 15px; font-size: 14px; line-height: 1.4; color: #ccc; border-radius: 0 8px 8px 0; }
+        .instruction-box b { color: #fff; }
     </style>
 </head>
 <body>
     <div id="status-dot"></div>
     <div id="history"></div>
-    <div id="display" ontouchstart="handleDisplayTouch()">0</div>
+    <div id="display-container">
+        <div id="display" ontouchstart="handleDisplayTouch()">0</div>
+    </div>
     <div class="grid">
         <button class="func" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()">C</button>
         <button class="func" onclick="press('back')">⌫</button>
@@ -63,19 +76,52 @@
         <button class="op" onclick="press('=')">=</button>
     </div>
 
-    <!-- Menú de Ajustes -->
     <div id="settings-dialog">
-        <h2>Ajustes</h2>
-        <label>Modo:<br><select id="magic-mode"><option value="time">Fecha / Hora</option><option value="fixed">Resultado Fijo</option></select></label><br><br>
-        <label>Formato Fecha:<br><select id="date-format"><option value="ddmmaa">DD/MM/AA</option><option value="ddmmaaaa">DD/MM/AAAA</option></select></label><br><br>
-        <label>Número Fijo:<br><input type="number" id="fixed-val" value="12345"></label><br><br>
-        <button onclick="closeSettings()" style="padding:10px 20px; background:#2ecc71; border:none; color:white; font-weight:bold;">Guardar</button>
+        <h2>Ajustes Mágicos</h2>
+        <label>Modo:<br>
+            <select id="magic-mode" onchange="updateInstructions()" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
+                <option value="time">Fecha / Hora</option>
+                <option value="fixed">Resultado Fijo</option>
+            </select>
+        </label><br><br>
+
+        <label>Formato Fecha:<br>
+            <select id="date-format" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
+                <option value="ddmmaa">DD/MM/AA (Ej: 1808261205)</option>
+                <option value="ddmmaaaa">DD/MM/AAAA (Ej: 180820261205)</option>
+            </select>
+        </label><br><br>
+
+        <label>Número Fijo:<br>
+            <input type="number" id="fixed-val" value="12345" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
+        </label>
+
+        <div id="instruction-text" class="instruction-box"></div>
+
+        <br>
+        <button onclick="closeSettings()" style="width:100%; padding:12px; background:#2ecc71; border:none; color:white; font-weight:bold; border-radius:8px; font-size:16px; cursor:pointer;">Guardar y Cerrar</button>
     </div>
 
     <script>
         let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0;
         
-        function updateUI() { document.getElementById('display').innerText = display; document.getElementById('history').innerText = history; }
+        document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+        document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+
+        function updateUI() {
+            const dispElem = document.getElementById('display');
+            dispElem.innerText = display;
+            document.getElementById('history').innerText = history;
+            
+            dispElem.style.fontSize = "75px";
+            let len = display.length;
+            if (len > 6 && len <= 9) {
+                dispElem.style.fontSize = "55px";
+            } else if (len > 9) {
+                dispElem.style.fontSize = "40px";
+            }
+        }
+
         function toggleStatusDot(show) { document.getElementById('status-dot').className = show ? 'show' : ''; }
         
         function press(key) {
@@ -116,9 +162,27 @@
         }
         
         function handleDisplayTouch() { const now = Date.now(); if (now - lastTap < 300) { armed = !armed; toggleStatusDot(armed); } lastTap = now; }
-        function startCHold() { cTimer = setTimeout(() => { document.getElementById('settings-dialog').style.display = "block"; }, 2000); }
+        
+        function startCHold() { 
+            cTimer = setTimeout(() => { 
+                updateInstructions();
+                document.getElementById('settings-dialog').style.display = "block"; 
+            }, 2000); 
+        }
         function endCHold() { clearTimeout(cTimer); }
         function closeSettings() { document.getElementById('settings-dialog').style.display = "none"; }
+
+        // Instructivo dinámico en los ajustes
+        function updateInstructions() {
+            const mode = document.getElementById('magic-mode').value;
+            const box = document.getElementById('instruction-text');
+            if (mode === 'time') {
+                box.innerHTML = `<b>Instructivo (Fecha/Hora):</b><br>1. Activa la magia haciendo doble toque en el display (verás el punto blanco arriba a la derecha).<br>2. Al pulsar cualquier número, la calculadora revelará automáticamente los dígitos correspondientes al <b>Día, Mes, Año y Hora actual</b> (según el formato seleccionado).`;
+            } else {
+                box.innerHTML = `<b>Instructivo (Resultado Fijo):</b><br>1. Activa la magia haciendo doble toque en el display (punto blanco visible).<br>2. Al presionar cualquier número o realizar una operación matemática, la calculadora te forzará de manera invisible el <b>Número Fijo</b> que configuraste previamente al presionar el igual (=).`;
+            }
+        }
     </script>
 </body>
 </html>
+ 
