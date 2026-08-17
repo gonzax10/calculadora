@@ -23,19 +23,29 @@
         #status-dot { position: fixed; top: 15px; right: 15px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
         #status-dot.show { opacity: 1; }
         
-        #history { height: 40px; text-align: right; padding: 5px 20px 0; font-size: 20px; color: rgba(255,255,255,0.8); overflow: hidden; display: flex; align-items: flex-end; justify-content: flex-end; white-space: nowrap; pointer-events: none; }
+        /* Contenedor superior para que el historial y el display mantengan su posición fija sin irse arriba del todo */
+        #screen-container {
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 15px 20px 10px 20px; width: 100%; min-height: 140px; pointer-events: none;
+        }
+
+        #history { 
+            height: 30px; text-align: right; font-size: 20px; 
+            color: rgba(255,255,255,0.7); overflow: hidden; white-space: nowrap; 
+            display: flex; align-items: flex-end; justify-content: flex-end; 
+            margin-bottom: 5px;
+        }
         
         #display-container {
-            flex: 1; display: flex; align-items: flex-end; justify-content: flex-end;
-            padding: 10px 20px; overflow: hidden; width: 100%;
-            pointer-events: none;
+            display: flex; align-items: flex-end; justify-content: flex-end;
+            overflow: hidden; width: 100%; height: 80px;
         }
         #display {
             font-size: 75px; font-weight: 200; white-space: nowrap; text-align: right;
             line-height: 1;
         }
         
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; padding-bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10; margin-top: auto; }
         button { aspect-ratio: 1/1; border-radius: 50%; border: none; font-size: 30px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         button:active { filter: brightness(1.5); }
         
@@ -52,12 +62,16 @@
 </head>
 <body onclick="handleGlobalTouch(event)">
     <div id="status-dot"></div>
-    <div id="history"></div>
-    <div id="display-container">
-        <div id="display">0</div>
+    
+    <div id="screen-container">
+        <div id="history"></div>
+        <div id="display-container">
+            <div id="display">0</div>
+        </div>
     </div>
+
     <div class="grid">
-        <button class="func" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()">C</button>
+        <button class="func" onclick="press('C')" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()">C</button>
         <button class="func" onclick="press('back')">⌫</button>
         <button class="func" onclick="press('%')">%</button>
         <button class="op" onclick="press('÷')">÷</button>
@@ -105,7 +119,7 @@
     </div>
 
     <script>
-        let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0;
+        let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0, isHolding = false;
         
         document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
         document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
@@ -127,11 +141,21 @@
         function toggleStatusDot(show) { document.getElementById('status-dot').className = show ? 'show' : ''; }
         
         function press(key) {
+            // Si se disparó el mantenimiento largo para abrir ajustes, ignoramos el click normal de la C
+            if (isHolding) return;
+
             const now = Date.now();
             if (key === '=') { if (now - lastPanicTime < 2000) panicCount++; else panicCount = 1; lastPanicTime = now; if (panicCount >= 3) { window.location.reload(); return; } }
-            if (!isNaN(key) || key === '.') handleDigit(key);
-            else if (key === 'back') { display = display.length > 1 ? display.slice(0, -1) : "0"; }
-            else handleOp(key);
+            
+            if (key === 'C') {
+                display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true;
+            } else if (!isNaN(key) || key === '.') {
+                handleDigit(key);
+            } else if (key === 'back') {
+                display = display.length > 1 ? display.slice(0, -1) : "0";
+            } else {
+                handleOp(key);
+            }
             updateUI();
         }
         
@@ -144,12 +168,19 @@
         }
         
         function handleOp(op) {
-            if (op === 'C') { display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true; }
-            else if (op === '=') {
+            if (op === '=') {
                 if (armed) { display = getTarget(); history += " " + display + " ="; armed = false; toggleStatusDot(false); }
                 else if (prevVal !== null && pendingOp) { history += " " + display + " ="; display = eval(prevVal + pendingOp.replace('×','*').replace('÷','/') + display).toString(); }
                 prevVal = null; pendingOp = null; startFresh = true;
-            } else { prevVal = parseFloat(display); pendingOp = op; history = display + " " + op; startFresh = true; if (armed) revealIdx = 0; }
+            } else if (op === '%') {
+                if (!isNaN(display)) { display = (parseFloat(display) / 100).toString(); }
+            } else { 
+                prevVal = parseFloat(display); 
+                pendingOp = op; 
+                history = display + " " + op; 
+                startFresh = true; 
+                if (armed) revealIdx = 0; 
+            }
         }
         
         function getTarget() {
@@ -167,7 +198,6 @@
         }
         
         function handleGlobalTouch(e) {
-            // Si el toque fue sobre un botón, no activar el doble toque global
             if (e.target.tagName === 'BUTTON' || e.target.closest('#settings-dialog')) return;
 
             const now = Date.now(); 
@@ -179,12 +209,17 @@
         }
         
         function startCHold() { 
+            isHolding = false;
             cTimer = setTimeout(() => { 
+                isHolding = true;
                 updateInstructions();
                 document.getElementById('settings-dialog').style.display = "block"; 
             }, 2000); 
         }
-        function endCHold() { clearTimeout(cTimer); }
+        function endCHold() { 
+            clearTimeout(cTimer); 
+            setTimeout(() => { isHolding = false; }, 100);
+        }
         function closeSettings() { document.getElementById('settings-dialog').style.display = "none"; }
 
         function updateInstructions() {
