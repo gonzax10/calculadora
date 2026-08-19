@@ -12,78 +12,123 @@
             --bg-color: #000000; 
             --text-color: #ffffff; 
             --btn-digit: #333333; 
-            --btn-op: #ff9f0a; 
-            --btn-func: #a5a5a5; 
+            --btn-digit-text: #ffffff;
+            --btn-op: #ff9f0a;
+            --btn-op-text: #ffffff;
+            --btn-func: #a5a5a5;
             --btn-func-text: #000000;
+            --key-shape: 50%;
+            --key-spacing: 12px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
+
         * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         body { 
             margin: 0; background-color: var(--bg-color); color: var(--text-color); 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif; 
+            font-family: var(--font-family);
             height: 100vh; height: 100dvh;
             display: flex; flex-direction: column; justify-content: flex-end;
             overflow: hidden; user-select: none; -webkit-user-select: none;
-            -webkit-touch-callout: none;
             padding-bottom: max(20px, env(safe-area-inset-bottom));
+            transition: background-color 0.3s;
         }
 
         #status-dot { position: fixed; top: 15px; right: 25px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
-        #status-dot.show { opacity: 1; }
+        #status-dot.show { opacity: 0.4; }
         
         #screen-container {
             display: flex; flex-direction: column; justify-content: flex-end;
             padding: 0 24px 15px 24px; width: 100%;
             cursor: pointer;
             margin-bottom: 5px;
+            overflow: hidden;
         }
 
         #history { 
-            height: 24px; text-align: right; font-size: 18px; 
-            color: rgba(255,255,255,0.5); overflow: hidden; white-space: nowrap; 
+            min-height: 24px; text-align: right; font-size: 20px;
+            color: rgba(255,255,255,0.5); overflow-x: auto; white-space: nowrap;
             display: flex; align-items: flex-end; justify-content: flex-end; 
-            margin-bottom: 2px; pointer-events: none;
+            margin-bottom: 4px; pointer-events: none;
+            scrollbar-width: none;
         }
-        
+        #history::-webkit-scrollbar { display: none; }
+
         #display-container {
             display: flex; align-items: flex-end; justify-content: flex-end;
-            overflow: hidden; width: 100%; min-height: 80px; pointer-events: none;
+            overflow: hidden; width: 100%; min-height: 90px; pointer-events: none;
         }
         #display {
             font-size: 78px; font-weight: 300; white-space: nowrap; text-align: right;
             line-height: 1; letter-spacing: -1px;
+            transition: font-size 0.1s;
         }
         
         .grid { 
             display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: 12px; padding: 0 16px; width: 100%; z-index: 10; 
+            gap: var(--key-spacing); padding: 0 16px; width: 100%; z-index: 10;
         }
         
         button { 
-            aspect-ratio: 1/1; border-radius: 50%; border: none; 
-            font-size: 32px; font-weight: 400; color: white; cursor: pointer; 
+            aspect-ratio: 1/1; border-radius: var(--key-shape); border: none;
+            font-size: 32px; font-weight: 400; cursor: pointer;
             display: flex; align-items: center; justify-content: center; 
-            transition: filter 0.1s;
+            transition: filter 0.1s, background-color 0.2s;
             width: 100%;
         }
         button:active { filter: brightness(1.4); }
         
-        .digit { background-color: var(--btn-digit); color: #ffffff; }
-        .op { background-color: var(--btn-op); color: #ffffff; font-size: 38px; }
-        .func { background-color: var(--btn-func); color: var(--btn-func-text); font-weight: 400; }
+        .digit { background-color: var(--btn-digit); color: var(--btn-digit-text); }
+        .op { background-color: var(--btn-op); color: var(--btn-op-text); font-size: 38px; }
+        .func { background-color: var(--btn-func); color: var(--btn-func-text); }
         
-        #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; overflow-y: auto; padding: 25px; color: white; cursor: default; }
-        #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .instruction-box { background: #111; border-left: 4px solid #ff9f0a; padding: 12px 15px; margin-top: 15px; font-size: 13px; line-height: 1.5; color: #ccc; border-radius: 0 8px 8px 0; }
-        .instruction-box b { color: #fff; }
+        /* Ajustes Ocultos */
+        #settings-dialog {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 100; overflow-y: auto;
+            padding: 25px; color: white; cursor: default;
+        }
+        #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; font-weight: 600; }
+        #settings-dialog h3 { font-size: 16px; margin-top: 20px; margin-bottom: 10px; color: #ff9f0a; }
         
-        .stepper-container { display: flex; align-items: center; justify-content: space-between; background: #222; border: 1px solid #444; border-radius: 5px; padding: 5px 10px; margin-top: 5px; }
-        .stepper-btn { background: #333; color: white; border: none; width: 36px; height: 36px; border-radius: 4px; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .stepper-btn:active { background: #555; }
-        #time-offset-val { font-size: 18px; font-weight: bold; color: #ff9f0a; }
+        .setting-group { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .setting-row:last-child { margin-bottom: 0; }
+
+        select, input {
+            background: #333; color: white; border: 1px solid #444;
+            padding: 8px; border-radius: 6px; font-size: 14px; width: 100%;
+        }
+
+        .instruction-box {
+            background: #111; border-left: 4px solid #ff9f0a; padding: 15px;
+            margin-top: 20px; font-size: 13px; line-height: 1.6; color: #ccc; border-radius: 4px;
+        }
+        .instruction-box b { color: #fff; display: block; margin-bottom: 5px; font-size: 14px; }
+
+        .stepper { display: flex; align-items: center; gap: 15px; }
+        .stepper button { width: 40px; height: 40px; aspect-ratio: 1/1; border-radius: 8px; font-size: 20px; background: #444; color: white; }
+        #offset-display { font-weight: bold; min-width: 60px; text-align: center; }
+
+        .save-btn {
+            width: 100%; padding: 15px; background: #2ecc71; border: none;
+            color: white; font-weight: bold; border-radius: 12px; font-size: 16px;
+            cursor: pointer; margin-top: 20px; margin-bottom: 40px;
+        }
+
+        /* Temas */
+        body.theme-samsung { --bg-color: #010101; --btn-digit: #171718; --btn-func: #2d2d2e; --btn-func-text: #db7135; --btn-op: #318608; --key-shape: 50%; --key-spacing: 14px; }
+        body.theme-xiaomi { --bg-color: #000000; --btn-digit: #242424; --btn-func: #242424; --btn-func-text: #ff8516; --btn-op: #ff8516; --key-shape: 12px; --key-spacing: 10px; }
+        body.theme-pixel { --bg-color: #1b1b1f; --btn-digit: #2d2f31; --btn-func: #44464a; --btn-func-text: #e3e2e6; --btn-op: #a8c7fa; --btn-op-text: #00315c; --key-shape: 28px; --key-spacing: 12px; }
+        body.theme-motorola { --bg-color: #1f1f1f; --btn-digit: #272a2e; --btn-func: #5ab3f1; --btn-func-text: #0d1c42; --btn-op: #d3e2fd; --btn-op-text: #0d1c42; --key-shape: 50%; --key-spacing: 10px; }
+        body.theme-realme { --bg-color: #000000; --btn-digit: #1a1a1a; --btn-func: #323232; --btn-func-text: #ffffff; --btn-op: #ff7c4a; --key-shape: 16px; --key-spacing: 12px; }
+        body.theme-ios { --bg-color: #000000; --btn-digit: #333333; --btn-func: #a5a5a5; --btn-func-text: #000000; --btn-op: #ff9f0a; --key-shape: 50%; --key-spacing: 12px; }
+
+        body.light-mode { --bg-color: #f7f7f7; --text-color: #000000; --btn-digit: #e8e8e8; --btn-digit-text: #000000; --btn-func: #f0f0f0; }
+        body.light-mode #history { color: rgba(0,0,0,0.5); }
     </style>
 </head>
-<body>
+<body class="theme-ios">
     <div id="status-dot"></div>
     
     <div id="screen-container" onclick="handleMagicTouch()">
@@ -94,8 +139,7 @@
     </div>
 
     <div class="grid">
-        <!-- Hilera 1 -->
-        <button class="func" onclick="press('C')" 
+        <button class="func" onclick="press('C')"
                 onmousedown="startCHold(event)" onmouseup="endCHold(event)" onmouseleave="endCHold(event)"
                 ontouchstart="startCHold(event)" ontouchend="endCHold(event)" ontouchcancel="endCHold(event)">
             <span id="c-label">AC</span>
@@ -104,231 +148,314 @@
         <button class="func" onclick="press('%')">%</button>
         <button class="op" onclick="press('÷')">÷</button>
         
-        <!-- Hilera 2 -->
         <button class="digit" onclick="press('7')">7</button>
         <button class="digit" onclick="press('8')">8</button>
         <button class="digit" onclick="press('9')">9</button>
         <button class="op" onclick="press('×')">×</button>
         
-        <!-- Hilera 3 -->
         <button class="digit" onclick="press('4')">4</button>
         <button class="digit" onclick="press('5')">5</button>
         <button class="digit" onclick="press('6')">6</button>
         <button class="op" onclick="press('-')">-</button>
         
-        <!-- Hilera 4 -->
         <button class="digit" onclick="press('1')">1</button>
         <button class="digit" onclick="press('2')">2</button>
         <button class="digit" onclick="press('3')">3</button>
         <button class="op" onclick="press('+')">+</button>
         
-        <!-- Hilera 5 -->
         <button class="digit" onclick="press('+/-')">±</button>
         <button class="digit" onclick="press('0')">0</button>
         <button class="digit" onclick="press('.')">,</button>
         <button class="op" onclick="press('=')">=</button>
     </div>
 
-    <!-- Menú de Ajustes Mágicos -->
     <div id="settings-dialog">
         <h2>Ajustes Mágicos e Instrucciones</h2>
-        <label>Modo de Magia:<br>
-            <select id="magic-mode" onchange="updateInstructions()" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
-                <option value="time">Fecha / Hora</option>
-                <option value="fixed">Número Fijo</option>
-            </select>
-        </label><br><br>
 
-        <label>Formato Fecha:<br>
-            <select id="date-format" onchange="updateInstructions()" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
-                <option value="ddmmaa">DD/MM/AA (ej: 1808261304)</option>
-                <option value="ddmmaaaa">DD/MM/AAAA (ej: 180820261304)</option>
-            </select>
-        </label><br><br>
-
-        <label>Ajuste de Minutos (Extra / Resta):<br>
-            <div class="stepper-container">
-                <button class="stepper-btn" onclick="changeOffset(-1)">-</button>
-                <span id="time-offset-val">0 min</span>
-                <button class="stepper-btn" onclick="changeOffset(1)">+</button>
+        <div class="setting-group">
+            <div class="setting-row">
+                <span>Modo Claro</span>
+                <input type="checkbox" id="is-white" style="width: 25px; height: 25px;" onchange="updateTheme()">
             </div>
-        </label><br>
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <span>Estilo Visual:</span>
+                <select id="device-style" onchange="updateTheme()">
+                    <option value="AUTO">Automático (Detección)</option>
+                    <option value="SAMSUNG">Samsung (One UI)</option>
+                    <option value="XIAOMI">Xiaomi (HyperOS)</option>
+                    <option value="PIXEL">Google Pixel</option>
+                    <option value="MOTOROLA">Motorola</option>
+                    <option value="REALME_OPPO">Realme / Oppo</option>
+                    <option value="IOS">iOS (iPhone)</option>
+                </select>
+            </div>
+        </div>
 
-        <label>Número Fijo (si usas ese modo):<br>
-            <input type="number" id="fixed-val" value="12345" style="width:100%; padding:8px; margin-top:5px; background:#222; color:white; border:1px solid #444; border-radius:5px;">
-        </label>
+        <h3>Efecto Mágico</h3>
+        <div class="setting-group">
+            <label>Modo de Forzaje:<br>
+                <select id="magic-mode">
+                    <option value="time">Fecha / Hora</option>
+                    <option value="fixed">Resultado Fijo</option>
+                    <option value="step">Paso a Paso</option>
+                </select>
+            </label><br><br>
 
-        <div id="instruction-text" class="instruction-box"></div>
+            <label id="format-container">Formato Fecha:<br>
+                <select id="date-format">
+                    <option value="ddmmaaaa_hhmm">DD/MM/AAAA HH:MM</option>
+                    <option value="ddmmaa_hhmm">DD/MM/AA HH:MM</option>
+                    <option value="mmddaaaa_hhmm">MM/DD/AAAA HH:MM</option>
+                    <option value="mmddaa_hhmm">MM/DD/AA HH:MM</option>
+                </select>
+            </label><br>
 
-        <br>
-        <button onclick="closeSettings()" style="width:100%; padding:12px; background:#2ecc71; border:none; color:white; font-weight:bold; border-radius:8px; font-size:16px; cursor:pointer; margin-top:10px;">Guardar y Cerrar</button>
+            <label id="offset-container">Ajuste de Minutos:<br>
+                <div class="stepper">
+                    <button onclick="changeOffset(-1)">-1</button>
+                    <span id="offset-display">0 min</span>
+                    <button onclick="changeOffset(1)">+1</button>
+                    <button onclick="changeOffset(5)">+5</button>
+                </div>
+            </label>
+
+            <label id="fixed-container" style="display:none">Número Fijo:<br>
+                <input type="number" id="fixed-val" value="12345">
+            </label>
+
+            <label id="step-container" style="display:none">Número Secreto (Paso a Paso):<br>
+                <input type="number" id="secret-digits" value="67890">
+            </label>
+        </div>
+
+        <div class="instruction-box">
+            <b>PULSEFORCE MAGIC APP (Web)</b>
+            1. <b>ACTIVACIÓN:</b> Haz DOBLE TOQUE sobre el visor (los números). Verás un punto blanco tenue arriba a la derecha que indica que está ARMADO.<br><br>
+            2. <b>FORZAJE INTELIGENTE:</b> Si pulsas un operador (+, -, x, /), cualquier número que toques después escribirá automáticamente los dígitos necesarios para que el resultado final sea la fecha/hora o tu número fijo. La calculadora se bloquea al terminar el número hasta pulsar '='.<br><br>
+            3. <b>MODO PÁNICO:</b> Pulsa '=' 3 veces rápido para recargar la app y borrar todo rastro.<br><br>
+            4. <b>AJUSTES:</b> Mantén pulsado 'C' durante 3 segundos.
+        </div>
+
+        <button class="save-btn" onclick="saveAndClose()">Guardar y Cerrar</button>
     </div>
 
     <script>
         let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0, isHolding = false;
-        let timeOffsetMinutes = 0;
+        let timeOffset = 0;
 
-        function changeOffset(val) {
-            timeOffsetMinutes += val;
-            let displayVal = timeOffsetMinutes > 0 ? "+" + timeOffsetMinutes : timeOffsetMinutes;
-            document.getElementById('time-offset-val').innerText = displayVal + " min";
-            updateInstructions();
+        // Persistencia
+        const storage = {
+            save: () => {
+                const data = {
+                    timeOffset,
+                    mode: document.getElementById('magic-mode').value,
+                    format: document.getElementById('date-format').value,
+                    fixed: document.getElementById('fixed-val').value,
+                    secret: document.getElementById('secret-digits').value,
+                    style: document.getElementById('device-style').value,
+                    white: document.getElementById('is-white').checked
+                };
+                localStorage.setItem('pulseforce_prefs', JSON.stringify(data));
+            },
+            load: () => {
+                const data = JSON.parse(localStorage.getItem('pulseforce_prefs') || '{}');
+                if (data.timeOffset !== undefined) timeOffset = data.timeOffset;
+                if (data.mode) document.getElementById('magic-mode').value = data.mode;
+                if (data.format) document.getElementById('date-format').value = data.format;
+                if (data.fixed) document.getElementById('fixed-val').value = data.fixed;
+                if (data.secret) document.getElementById('secret-digits').value = data.secret;
+                if (data.style) document.getElementById('device-style').value = data.style;
+                if (data.white !== undefined) document.getElementById('is-white').checked = data.white;
+                updateTheme();
+                updateOffsetDisplay();
+            }
+        };
+
+        function updateTheme() {
+            let style = document.getElementById('device-style').value;
+            if (style === 'AUTO') {
+                const ua = navigator.userAgent.toLowerCase();
+                if (ua.includes("samsung")) style = "SAMSUNG";
+                else if (ua.includes("xiaomi") || ua.includes("redmi") || ua.includes("poco")) style = "XIAOMI";
+                else if (ua.includes("pixel") || ua.includes("google")) style = "PIXEL";
+                else if (ua.includes("motorola") || ua.includes("moto")) style = "MOTOROLA";
+                else if (ua.includes("realme") || ua.includes("oppo")) style = "REALME_OPPO";
+                else if (ua.includes("iphone") || ua.includes("ipad")) style = "IOS";
+                else style = "DEFAULT";
+            }
+
+            document.body.className = "theme-" + style.toLowerCase().replace('_','-');
+            if (document.getElementById('is-white').checked) document.body.classList.add('light-mode');
         }
-        
-        document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-        document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+
+        function changeOffset(v) { timeOffset += v; updateOffsetDisplay(); }
+        function updateOffsetDisplay() { document.getElementById('offset-display').innerText = (timeOffset > 0 ? "+" : "") + timeOffset + " min"; }
 
         function updateUI() {
             const dispElem = document.getElementById('display');
             dispElem.innerText = display.replace('.', ',');
-            document.getElementById('history').innerText = history;
+            const histElem = document.getElementById('history');
+            histElem.innerText = history;
+            histElem.scrollLeft = histElem.scrollWidth;
             
             document.getElementById('c-label').innerText = (display === "0" && history === "") ? "AC" : "C";
 
-            dispElem.style.fontSize = "78px";
             let len = display.length;
-            if (len > 6 && len <= 9) {
-                dispElem.style.fontSize = "58px";
-            } else if (len > 9) {
-                dispElem.style.fontSize = "42px";
-            }
+            if (len <= 8) dispElem.style.fontSize = "78px";
+            else if (len <= 12) dispElem.style.fontSize = "54px";
+            else dispElem.style.fontSize = "38px";
         }
 
-        function toggleStatusDot(show) { document.getElementById('status-dot').className = show ? 'show' : ''; }
-        
         function press(key) {
             if (isHolding) return;
-
             const now = Date.now();
             
             if (key === '=') {
-                if (now - lastPanicTime < 2000) {
-                    panicCount++;
-                } else {
-                    panicCount = 1;
-                }
+                if (now - lastPanicTime < 2000) panicCount++;
+                else panicCount = 1;
                 lastPanicTime = now;
-                
-                if (panicCount >= 3) {
-                    window.location.href = "about:blank"; 
-                    return;
-                }
+                if (panicCount >= 3) { window.location.reload(); return; }
             }
             
             if (key === 'C') {
                 display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true;
             } else if (key === 'back') {
+                if (startFresh) return;
                 display = display.length > 1 ? display.slice(0, -1) : "0";
             } else if (!isNaN(key) || key === '.') {
                 handleDigit(key);
             } else if (key === '+/-') {
-                if (display !== "0") {
-                    display = display.startsWith('-') ? display.slice(1) : '-' + display;
-                }
+                if (display !== "0") display = display.startsWith('-') ? display.slice(1) : '-' + display;
             } else {
                 handleOp(key);
             }
             updateUI();
         }
-        
+
+        function getTarget() {
+            const mode = document.getElementById('magic-mode').value;
+            if (mode === 'fixed') return document.getElementById('fixed-val').value;
+            if (mode === 'step') return document.getElementById('secret-digits').value;
+
+            const now = new Date(Date.now() + timeOffset * 60000);
+            const d = String(now.getDate()).padStart(2, '0');
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const yFull = String(now.getFullYear());
+            const yShort = yFull.slice(-2);
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+
+            const fmt = document.getElementById('date-format').value;
+            if (fmt === 'ddmmaaaa_hhmm') return d + m + yFull + hh + mm;
+            if (fmt === 'ddmmaa_hhmm') return d + m + yShort + hh + mm;
+            if (fmt === 'mmddaaaa_hhmm') return m + d + yFull + hh + mm;
+            return m + d + yShort + hh + mm;
+        }
+
         function handleDigit(d) {
             if (armed) {
                 let target = getTarget();
-                if (pendingOp && prevVal !== null) { 
-                    let diffStr = Math.abs(parseFloat(target) - prevVal).toString().replace(".", ""); 
-                    if (revealIdx < diffStr.length) { display = (startFresh) ? diffStr[revealIdx] : display + diffStr[revealIdx]; revealIdx++; startFresh = false; } 
-                } else { 
-                    if (revealIdx < target.length) { display = (revealIdx === 0) ? target[revealIdx] : display + target[revealIdx]; revealIdx++; startFresh = false; } 
-                }
-            } else { 
-                if (d === '.') {
-                    if (!display.includes('.')) display += '.';
+                if (pendingOp && prevVal !== null && document.getElementById('magic-mode').value !== 'step') {
+                    // Forzaje inteligente por diferencia
+                    let targetNum = parseFloat(target);
+                    let needed = 0;
+                    if (pendingOp === '+') needed = targetNum - prevVal;
+                    else if (pendingOp === '-') needed = prevVal - targetNum;
+                    else if (pendingOp === '×') needed = prevVal !== 0 ? targetNum / prevVal : 0;
+                    else if (pendingOp === '÷') needed = targetNum !== 0 ? prevVal / targetNum : 0;
+
+                    let neededStr = Math.abs(needed).toString().replace(".", "");
+                    if (revealIdx < neededStr.length) {
+                        display = startFresh ? neededStr[revealIdx] : display + neededStr[revealIdx];
+                        revealIdx++; startFresh = false;
+                    }
+                    return;
                 } else {
-                    if (startFresh || display === "0") { display = d; startFresh = false; } else display += d; 
+                    // Revelación directa
+                    if (revealIdx < target.length) {
+                        display = revealIdx === 0 ? target[revealIdx] : display + target[revealIdx];
+                        revealIdx++; startFresh = false;
+                    }
+                    return;
                 }
             }
+            if (d === '.') { if (!display.includes('.')) display += '.'; }
+            else { if (startFresh || display === "0") { display = d; startFresh = false; } else display += d; }
         }
-        
+
         function handleOp(op) {
             if (op === '=') {
-                if (armed) { display = getTarget(); history += " " + display + " ="; armed = false; toggleStatusDot(false); }
-                else if (prevVal !== null && pendingOp) { history += " " + display + " ="; display = eval(prevVal + pendingOp.replace('×','*').replace('÷','/') + display).toString(); }
+                if (armed) {
+                    const target = getTarget();
+                    history = history === "" ? (display + " =") : (history + " " + display + " =");
+                    display = target;
+                    armed = false; document.getElementById('status-dot').className = '';
+                } else if (prevVal !== null && pendingOp) {
+                    history += " " + display + " =";
+                    let a = prevVal, b = parseFloat(display);
+                    let res = 0;
+                    if (pendingOp === '+') res = a + b;
+                    else if (pendingOp === '-') res = a - b;
+                    else if (pendingOp === '×') res = a * b;
+                    else if (pendingOp === '÷') res = b !== 0 ? a / b : 0;
+                    display = res.toString();
+                }
                 prevVal = null; pendingOp = null; startFresh = true;
             } else if (op === '%') {
-                if (!isNaN(display)) { display = (parseFloat(display) / 100).toString(); }
-            } else { 
-                prevVal = parseFloat(display); 
-                pendingOp = op; 
-                history = display + " " + op; 
-                startFresh = true; 
-                if (armed) revealIdx = 0; 
+                display = (parseFloat(display) / 100).toString();
+                startFresh = true;
+            } else {
+                if (prevVal !== null && !startFresh) {
+                    let a = prevVal, b = parseFloat(display);
+                    if (pendingOp === '+') prevVal = a + b;
+                    else if (pendingOp === '-') prevVal = a - b;
+                    else if (pendingOp === '×') prevVal = a * b;
+                    else if (pendingOp === '÷') prevVal = b !== 0 ? a / b : 0;
+                    display = prevVal.toString();
+                } else {
+                    prevVal = parseFloat(display);
+                }
+                pendingOp = op;
+                history = history === "" || history.endsWith('=') ? (display + " " + op) : (history + " " + display + " " + op);
+                startFresh = true;
+                if (armed) revealIdx = 0;
             }
         }
-        
-        function getTarget() {
-            const mode = document.getElementById('magic-mode').value;
-            if (mode === 'fixed') {
-                return document.getElementById('fixed-val').value;
-            }
-            const now = new Date();
-            if (timeOffsetMinutes !== 0) {
-                now.setMinutes(now.getMinutes() + timeOffsetMinutes);
-            }
-            const d = String(now.getDate()).padStart(2, '0');
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const y = document.getElementById('date-format').value === 'ddmmaa' ? String(now.getFullYear()).slice(-2) : String(now.getFullYear());
-            const hh = String(now.getHours()).padStart(2, '0');
-            const mm = String(now.getMinutes()).padStart(2, '0');
-            return d + m + y + hh + mm;
-        }
-        
+
         function handleMagicTouch() {
-            const now = Date.now(); 
-            if (now - lastTap < 400) { 
-                armed = !armed; 
-                toggleStatusDot(armed); 
-            } 
-            lastTap = now; 
+            const now = Date.now();
+            if (now - lastTap < 400) {
+                armed = !armed;
+                document.getElementById('status-dot').className = armed ? 'show' : '';
+                revealIdx = 0;
+            }
+            lastTap = now;
         }
-        
-        function startCHold(e) { 
+
+        function startCHold(e) {
             if (e.cancelable) e.preventDefault();
             isHolding = false;
-            cTimer = setTimeout(() => { 
+            cTimer = setTimeout(() => {
                 isHolding = true;
-                updateInstructions();
-                document.getElementById('settings-dialog').style.display = "block"; 
-            }, 2000); 
+                document.getElementById('settings-dialog').style.display = 'block';
+            }, 2000);
         }
-        
-        function endCHold(e) { 
-            clearTimeout(cTimer); 
-            setTimeout(() => { isHolding = false; }, 150);
+        function endCHold() { clearTimeout(cTimer); setTimeout(() => isHolding = false, 200); }
+        function saveAndClose() {
+            storage.save();
+            document.getElementById('settings-dialog').style.display = 'none';
         }
-        
-        function closeSettings() { document.getElementById('settings-dialog').style.display = "none"; }
 
-        function updateInstructions() {
-            const mode = document.getElementById('magic-mode').value;
-            const box = document.getElementById('instruction-text');
-            const offsetText = timeOffsetMinutes === 0 ? "sin modificación de minutos" : (timeOffsetMinutes > 0 ? `sumando ${timeOffsetMinutes} minuto(s)` : `restando ${Math.abs(timeOffsetMinutes)} minuto(s)`);
-            
-            if (mode === 'time') {
-                box.innerHTML = `<b>Instrucciones - Modo Fecha / Hora:</b><br>` +
-                                `1. <b>Activación secreta:</b> Haz doble toque rápido sobre la pantalla (zona de números) para encender el punto blanco indicador arriba a la derecha.<br>` +
-                                `2. <b>Funcionamiento:</b> Con el modo activo, cada botón que presiones en la calculadora irá forzando y escribiendo dígito a dígito la fecha y hora actuales (${offsetText}).<br>` +
-                                `3. <b>Ajuste de Minutos:</b> Usa los botones <b>+</b> y <b>-</b> en este menú para adelantar o atrasar los minutos exactos que arrojará la magia según te convenga.<br>` +
-                                `4. <b>Salida de emergencia:</b> Presiona el botón <b>=</b> tres veces seguidas rápidamente para limpiar la pantalla y salir a una página en blanco.`;
-            } else {
-                box.innerHTML = `<b>Instrucciones - Modo Número Fijo:</b><br>` +
-                                `1. <b>Activación secreta:</b> Haz doble toque rápido sobre la pantalla para encender el punto blanco.<br>` +
-                                `2. <b>Funcionamiento:</b> Al tipear, la calculadora ignorará las cuentas reales e irá escribiendo dígito a dígito el <b>Número Fijo</b> que hayas configurado en la casilla de arriba.<br>` +
-                                `3. <b>Salida de emergencia:</b> Presiona el botón <b>=</b> tres veces seguidas rápidamente para bloquear la pantalla.`;
-            }
-        }
-        
-        // Cargar instrucciones iniciales al abrir la página
-        updateInstructions();
+        window.onload = storage.load;
+
+        // Mostrar/Ocultar campos según modo
+        document.getElementById('magic-mode').onchange = (e) => {
+            const m = e.target.value;
+            document.getElementById('format-container').style.display = m === 'time' ? 'block' : 'none';
+            document.getElementById('offset-container').style.display = m === 'time' ? 'block' : 'none';
+            document.getElementById('fixed-container').style.display = m === 'fixed' ? 'block' : 'none';
+            document.getElementById('step-container').style.display = m === 'step' ? 'block' : 'none';
+        };
     </script>
 </body>
 </html>
