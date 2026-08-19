@@ -34,9 +34,10 @@
             transition: background-color 0.3s;
         }
 
-        #status-dot { position: fixed; top: 15px; right: 25px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; }
+        #status-dot { position: fixed; top: 15px; right: 25px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s, background-color 0.3s; z-index: 1000; pointer-events: none; }
         #status-dot.show { opacity: 0.4; }
-        
+        #status-dot.incomplete { background-color: #ff4500; opacity: 0.6; } /* Aviso de falta de dígitos */
+
         #screen-container {
             display: flex; flex-direction: column; justify-content: flex-end;
             padding: 0 24px 15px 24px; width: 100%;
@@ -82,7 +83,6 @@
         .op { background-color: var(--btn-op); color: var(--btn-op-text); font-size: 38px; }
         .func { background-color: var(--btn-func); color: var(--btn-func-text); }
         
-        /* Ajustes Ocultos */
         #settings-dialog {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.98); z-index: 100; overflow-y: auto;
@@ -93,7 +93,6 @@
         
         .setting-group { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; }
         .setting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .setting-row:last-child { margin-bottom: 0; }
 
         select, input {
             background: #333; color: white; border: 1px solid #444;
@@ -112,8 +111,8 @@
         #offset-display { font-weight: bold; min-width: 60px; text-align: center; }
 
         .save-btn {
-            width: auto; padding: 10px 30px; background: #2ecc71; border: none;
-            color: white; font-weight: bold; border-radius: 8px; font-size: 14px;
+            width: auto; padding: 10px 40px; background: #2ecc71; border: none;
+            color: white; font-weight: bold; border-radius: 12px; font-size: 14px;
             cursor: pointer; margin: 20px auto 10px; display: block;
         }
         .version-text { text-align: center; color: #555; font-size: 11px; margin-bottom: 30px; }
@@ -128,7 +127,6 @@
         body.theme-default { --bg-color: #101010; --btn-digit: #2c2c2c; --btn-func: #a5a5a5; --btn-func-text: #000000; --btn-op: #ff9f0a; --key-shape: 32px; --key-spacing: 10px; }
 
         body.light-mode { --bg-color: #f7f7f7; --text-color: #000000; --btn-digit: #e8e8e8; --btn-digit-text: #000000; --btn-func: #f0f0f0; }
-        body.light-mode #history { color: rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="theme-ios">
@@ -184,7 +182,7 @@
                 <span>Pantalla Completa Automática</span>
                 <input type="checkbox" id="auto-fullscreen" style="width: 25px; height: 25px;">
             </div>
-            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px; margin-top:10px;">
                 <span>Estilo Visual de la Calculadora:</span>
                 <select id="device-style" onchange="updateTheme()">
                     <option value="AUTO">Automático (Detectar Marca)</option>
@@ -238,11 +236,12 @@
         </div>
 
         <div class="instruction-box">
-            <b>GUÍA DE USO PROFESIONAL</b>
-            1. <b>ACTIVACIÓN:</b> Haz DOBLE TOQUE sobre el visor. Un punto blanco casi invisible aparecerá arriba. Ya estás armado.<br><br>
-            2. <b>MAGIA INTELIGENTE:</b> Si pulsas un operador (ej. '+'), cualquier número que toque el espectador escribirá automáticamente los dígitos necesarios para llegar a tu objetivo. Al terminar, la calculadora se bloquea hasta pulsar '='.<br><br>
-            3. <b>PANICO:</b> Toca '=' 3 veces rápido para cerrar/resetear todo.<br><br>
-            4. <b>AJUSTES:</b> Mantén pulsado 'C' durante 3 segundos.
+            <b>GUÍA DE USO PROFESIONAL (v1.12)</b>
+            1. <b>ARMADO:</b> Doble toque en el visor. El punto blanco indica que está listo.<br><br>
+            2. <b>FORZAJE SEGURO:</b> Si pulsas un operador, teclea los dígitos. <b>Si pulsas '=' antes de terminar el número, la calculadora hará la cuenta real y el punto se pondrá NARANJA</b>. Esto te avisa de que aún debes sumar más para llegar al resultado mágico.<br><br>
+            3. <b>MODO PASO A PASO:</b> Cada tecla numérica que toques escribirá el siguiente dígito de tu número secreto. Úsalo para revelaciones directas sin sumas.<br><br>
+            4. <b>PANICO:</b> Toca '=' 3 veces rápido para resetear.<br><br>
+            5. <b>AJUSTES:</b> Mantén 'C' 3 segundos.
         </div>
 
         <button class="save-btn" onclick="saveAndClose()">Guardar y Cerrar</button>
@@ -251,9 +250,8 @@
 
     <script>
         let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0, isHolding = false;
-        let timeOffset = 0;
+        let timeOffset = 0, currentTargetString = "";
 
-        // Persistencia
         const storage = {
             save: () => {
                 const data = {
@@ -289,8 +287,8 @@
             if (style === 'AUTO') {
                 const ua = navigator.userAgent || navigator.vendor || window.opera;
                 const lowUA = ua.toLowerCase();
-                if (/samsung/i.test(lowUA)) style = "SAMSUNG";
-                else if (/xiaomi|miui|redmi|poco/i.test(lowUA)) style = "XIAOMI";
+                if (/xiaomi|miui|redmi|poco/i.test(lowUA)) style = "XIAOMI";
+                else if (/samsung/i.test(lowUA)) style = "SAMSUNG";
                 else if (/google|pixel/i.test(lowUA)) style = "PIXEL";
                 else if (/motorola|moto /i.test(lowUA)) style = "MOTOROLA";
                 else if (/realme|oppo/i.test(lowUA)) style = "REALME_OPPO";
@@ -298,7 +296,6 @@
                 else if (/android/i.test(lowUA)) style = "DEFAULT";
                 else style = "IOS";
             }
-
             document.body.className = "theme-" + style.toLowerCase().replace('_','-');
             if (document.getElementById('is-white').checked) document.body.classList.add('light-mode');
         }
@@ -306,27 +303,18 @@
         function updateModeInfo() {
             const m = document.getElementById('magic-mode').value;
             const desc = document.getElementById('mode-description');
-
             document.getElementById('format-container').style.display = m === 'time' ? 'block' : 'none';
             document.getElementById('offset-container').style.display = m === 'time' ? 'block' : 'none';
             document.getElementById('fixed-container').style.display = m === 'fixed' ? 'block' : 'none';
             document.getElementById('step-container').style.display = m === 'step' ? 'block' : 'none';
-
-            if(m === 'time') desc.innerText = "El resultado final será la FECHA y HORA actual del dispositivo.";
-            else if(m === 'fixed') desc.innerText = "El resultado final será EXACTAMENTE el número que escribas abajo.";
-            else desc.innerText = "El número secreto se irá escribiendo dígito a dígito cada vez que toques CUALQUIER tecla numérica.";
+            if(m === 'time') desc.innerText = "El resultado final será la FECHA y HORA actual.";
+            else if(m === 'fixed') desc.innerText = "El resultado final será el número fijo configurado.";
+            else desc.innerText = "Modo Revelación: Cada tecla numérica escribirá un dígito de tu número secreto.";
         }
 
         function changeOffset(v) { timeOffset += v; updateOffsetDisplay(); }
         function updateOffsetDisplay() { document.getElementById('offset-display').innerText = (timeOffset > 0 ? "+" : "") + timeOffset + " min"; }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error al activar pantalla completa: ${err.message}`);
-                });
-            }
-        }
+        function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); }
 
         function updateUI() {
             const dispElem = document.getElementById('display');
@@ -334,9 +322,7 @@
             const histElem = document.getElementById('history');
             histElem.innerText = history;
             histElem.scrollLeft = histElem.scrollWidth;
-            
             document.getElementById('c-label').innerText = (display === "0" && history === "") ? "AC" : "C";
-
             let len = display.length;
             if (len <= 8) dispElem.style.fontSize = "78px";
             else if (len <= 12) dispElem.style.fontSize = "54px";
@@ -349,17 +335,15 @@
             if (isHolding) return;
             haptic();
             if (document.getElementById('auto-fullscreen').checked) toggleFullScreen();
-            
             const now = Date.now();
             if (key === '=') {
-                if (now - lastPanicTime < 2000) panicCount++;
-                else panicCount = 1;
+                if (now - lastPanicTime < 2000) panicCount++; else panicCount = 1;
                 lastPanicTime = now;
                 if (panicCount >= 3) { window.location.href = "about:blank"; return; }
             }
-            
             if (key === 'C') {
                 display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true;
+                if (armed) { revealIdx = 0; document.getElementById('status-dot').classList.remove('incomplete'); }
             } else if (key === 'back') {
                 if (startFresh) return;
                 display = display.length > 1 ? display.slice(0, -1) : "0";
@@ -377,43 +361,39 @@
             const mode = document.getElementById('magic-mode').value;
             if (mode === 'fixed') return document.getElementById('fixed-val').value;
             if (mode === 'step') return document.getElementById('secret-digits').value;
-
             const now = new Date(Date.now() + timeOffset * 60000);
-            const d = String(now.getDate()).padStart(2, '0');
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const yFull = String(now.getFullYear());
-            const yShort = yFull.slice(-2);
-            const hh = String(now.getHours()).padStart(2, '0');
-            const mm = String(now.getMinutes()).padStart(2, '0');
-
+            const d = String(now.getDate()).padStart(2, '0'), m = String(now.getMonth() + 1).padStart(2, '0');
+            const yF = String(now.getFullYear()), yS = yF.slice(-2);
+            const hh = String(now.getHours()).padStart(2, '0'), mm = String(now.getMinutes()).padStart(2, '0');
             const fmt = document.getElementById('date-format').value;
-            if (fmt === 'ddmmaaaa_hhmm') return d + m + yFull + hh + mm;
-            if (fmt === 'ddmmaa_hhmm') return d + m + yShort + hh + mm;
-            if (fmt === 'mmddaaaa_hhmm') return m + d + yFull + hh + mm;
-            return m + d + yShort + hh + mm;
+            if (fmt === 'ddmmaaaa_hhmm') return d + m + yF + hh + mm;
+            if (fmt === 'ddmmaa_hhmm') return d + m + yS + hh + mm;
+            if (fmt === 'mmddaaaa_hhmm') return m + d + yF + hh + mm;
+            return m + d + yS + hh + mm;
         }
 
         function handleDigit(d) {
             if (armed) {
                 let target = getTarget();
                 if (pendingOp && prevVal !== null && document.getElementById('magic-mode').value !== 'step') {
-                    let targetNum = parseFloat(target);
-                    let needed = 0;
+                    let targetNum = parseFloat(target), needed = 0;
                     if (pendingOp === '+') needed = targetNum - prevVal;
                     else if (pendingOp === '-') needed = prevVal - targetNum;
                     else if (pendingOp === '×') needed = prevVal !== 0 ? targetNum / prevVal : 0;
                     else if (pendingOp === '÷') needed = targetNum !== 0 ? prevVal / targetNum : 0;
-
-                    let neededStr = Math.abs(needed).toString().replace(".", "");
-                    if (revealIdx < neededStr.length) {
-                        display = startFresh ? neededStr[revealIdx] : display + neededStr[revealIdx];
+                    currentTargetString = Math.abs(needed).toString().replace(".", "");
+                    if (revealIdx < currentTargetString.length) {
+                        display = startFresh ? currentTargetString[revealIdx] : display + currentTargetString[revealIdx];
                         revealIdx++; startFresh = false;
+                        document.getElementById('status-dot').classList.remove('incomplete');
                     }
                     return;
                 } else {
-                    if (revealIdx < target.length) {
-                        display = (revealIdx === 0 || startFresh) ? target[revealIdx] : display + target[revealIdx];
+                    currentTargetString = target;
+                    if (revealIdx < currentTargetString.length) {
+                        display = (revealIdx === 0 || startFresh) ? currentTargetString[revealIdx] : display + currentTargetString[revealIdx];
                         revealIdx++; startFresh = false;
+                        document.getElementById('status-dot').classList.remove('incomplete');
                     }
                     return;
                 }
@@ -425,39 +405,36 @@
         function handleOp(op) {
             if (op === '=') {
                 if (armed) {
-                    const target = getTarget();
-                    history = history === "" ? (display + " =") : (history + " " + display + " =");
-                    display = target;
-                    armed = false; document.getElementById('status-dot').className = '';
-                } else if (prevVal !== null && pendingOp) {
-                    history += " " + display + " =";
-                    let a = prevVal, b = parseFloat(display);
-                    let res = 0;
-                    if (pendingOp === '+') res = a + b;
-                    else if (pendingOp === '-') res = a - b;
-                    else if (pendingOp === '×') res = a * b;
-                    else if (pendingOp === '÷') res = b !== 0 ? a / b : 0;
-                    display = res.toString();
-                }
+                    if (revealIdx >= currentTargetString.length && currentTargetString !== "") {
+                        display = getTarget();
+                        history = history === "" ? (display + " =") : (history + " " + display + " =");
+                        armed = false; document.getElementById('status-dot').className = '';
+                    } else {
+                        document.getElementById('status-dot').classList.add('incomplete');
+                        realMath();
+                    }
+                } else realMath();
                 prevVal = null; pendingOp = null; startFresh = true;
             } else if (op === '%') {
-                display = (parseFloat(display) / 100).toString();
-                startFresh = true;
+                display = (parseFloat(display) / 100).toString(); startFresh = true;
             } else {
-                if (prevVal !== null && !startFresh) {
-                    let a = prevVal, b = parseFloat(display);
-                    if (pendingOp === '+') prevVal = a + b;
-                    else if (pendingOp === '-') prevVal = a - b;
-                    else if (pendingOp === '×') prevVal = a * b;
-                    else if (pendingOp === '÷') prevVal = b !== 0 ? a / b : 0;
-                    display = prevVal.toString();
-                } else {
-                    prevVal = parseFloat(display);
-                }
+                if (prevVal !== null && !startFresh) realMath(); else prevVal = parseFloat(display);
                 pendingOp = op;
                 history = history === "" || history.endsWith('=') ? (display + " " + op) : (history + " " + display + " " + op);
                 startFresh = true;
-                if (armed) revealIdx = 0;
+                if (armed) { revealIdx = 0; currentTargetString = ""; }
+            }
+        }
+
+        function realMath() {
+            if (prevVal !== null && pendingOp) {
+                let a = prevVal, b = parseFloat(display), res = 0;
+                if (pendingOp === '+') res = a + b;
+                else if (pendingOp === '-') res = a - b;
+                else if (pendingOp === '×') res = a * b;
+                else if (pendingOp === '÷') res = b !== 0 ? a / b : 0;
+                history += " " + display + " =";
+                display = res.toString();
             }
         }
 
@@ -467,8 +444,7 @@
             if (now - lastTap < 400) {
                 armed = !armed;
                 document.getElementById('status-dot').className = armed ? 'show' : '';
-                revealIdx = 0;
-                haptic();
+                revealIdx = 0; currentTargetString = ""; haptic();
             }
             lastTap = now;
         }
@@ -476,17 +452,11 @@
         function startCHold(e) {
             isHolding = false;
             cTimer = setTimeout(() => {
-                isHolding = true;
-                document.getElementById('settings-dialog').style.display = 'block';
-                haptic();
+                isHolding = true; document.getElementById('settings-dialog').style.display = 'block'; haptic();
             }, 3000);
         }
         function endCHold() { clearTimeout(cTimer); setTimeout(() => isHolding = false, 200); }
-        function saveAndClose() {
-            storage.save();
-            document.getElementById('settings-dialog').style.display = 'none';
-        }
-
+        function saveAndClose() { storage.save(); document.getElementById('settings-dialog').style.display = 'none'; }
         window.onload = storage.load;
     </script>
 </body>
