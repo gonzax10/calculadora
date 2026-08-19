@@ -9,114 +9,55 @@
     <title>Calculadora</title>
     <style>
         :root { 
-            --bg-color: #000000; 
-            --text-color: #ffffff; 
-            --btn-digit: #333333; 
-            --btn-digit-text: #ffffff;
-            --btn-op: #ff9f0a;
-            --btn-op-text: #ffffff;
-            --btn-func: #a5a5a5;
-            --btn-func-text: #000000;
-            --key-shape: 50%;
-            --key-spacing: 12px;
+            --bg-color: #000000; --text-color: #ffffff;
+            --btn-digit: #333333; --btn-digit-text: #ffffff;
+            --btn-op: #ff9f0a; --btn-op-text: #ffffff;
+            --btn-func: #a5a5a5; --btn-func-text: #000000;
+            --key-shape: 50%; --key-spacing: 12px;
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-
         * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        
-        body { 
+        body {
             margin: 0; background-color: var(--bg-color); color: var(--text-color); 
-            font-family: var(--font-family);
-            height: 100vh; height: 100dvh;
+            font-family: var(--font-family); height: 100vh; height: 100dvh;
             display: flex; flex-direction: column; justify-content: flex-end;
             overflow: hidden; user-select: none; -webkit-user-select: none;
             padding-bottom: max(20px, env(safe-area-inset-bottom));
             transition: background-color 0.3s;
         }
-
         #status-dot { position: fixed; top: 15px; right: 25px; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0; transition: opacity 0.3s, background-color 0.3s; z-index: 1000; pointer-events: none; }
         #status-dot.show { opacity: 0.4; }
-        #status-dot.incomplete { background-color: #ff4500; opacity: 0.6; } /* Aviso de falta de dígitos */
-
-        #screen-container {
-            display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 0 24px 15px 24px; width: 100%;
-            cursor: pointer;
-            margin-bottom: 5px;
-            overflow: hidden;
-        }
-
+        #status-dot.incomplete { background-color: #ff4500; opacity: 0.6; }
+        #screen-container { display: flex; flex-direction: column; justify-content: flex-end; padding: 0 24px 15px 24px; width: 100%; cursor: pointer; margin-bottom: 5px; overflow: hidden; }
         #history { 
             min-height: 24px; text-align: right; font-size: 20px;
             color: rgba(255,255,255,0.5); overflow-x: auto; white-space: nowrap;
             display: flex; align-items: flex-end; justify-content: flex-end; 
-            margin-bottom: 4px; pointer-events: none;
-            scrollbar-width: none;
+            margin-bottom: 4px; pointer-events: none; scrollbar-width: none;
         }
         #history::-webkit-scrollbar { display: none; }
-
-        #display-container {
-            display: flex; align-items: flex-end; justify-content: flex-end;
-            overflow: hidden; width: 100%; min-height: 90px; pointer-events: none;
-        }
-        #display {
-            font-size: 78px; font-weight: 300; white-space: nowrap; text-align: right;
-            line-height: 1; letter-spacing: -1px;
-            transition: font-size 0.1s;
-        }
-        
-        .grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: var(--key-spacing); padding: 0 16px; width: 100%; z-index: 10;
-        }
-        
-        button { 
-            aspect-ratio: 1/1; border-radius: var(--key-shape); border: none;
-            font-size: 32px; font-weight: 400; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; 
-            transition: filter 0.1s, background-color 0.2s;
-            width: 100%;
-        }
+        #display-container { display: flex; align-items: flex-end; justify-content: flex-end; overflow: hidden; width: 100%; min-height: 90px; pointer-events: none; }
+        #display { font-size: 78px; font-weight: 300; white-space: nowrap; text-align: right; line-height: 1; letter-spacing: -1px; transition: font-size: 0.1s; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--key-spacing); padding: 0 16px; width: 100%; z-index: 10; }
+        button { aspect-ratio: 1/1; border-radius: var(--key-shape); border: none; font-size: 32px; font-weight: 400; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: filter 0.1s, background-color 0.2s; width: 100%; }
         button:active { filter: brightness(1.4); }
-        
         .digit { background-color: var(--btn-digit); color: var(--btn-digit-text); }
         .op { background-color: var(--btn-op); color: var(--btn-op-text); font-size: 38px; }
         .func { background-color: var(--btn-func); color: var(--btn-func-text); }
-        
-        #settings-dialog {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); z-index: 100; overflow-y: auto;
-            padding: 25px; color: white; cursor: default;
-        }
+        #settings-dialog { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 100; overflow-y: auto; padding: 25px; color: white; cursor: default; }
         #settings-dialog h2 { margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; font-weight: 600; }
         #settings-dialog h3 { font-size: 16px; margin-top: 20px; margin-bottom: 10px; color: #ff9f0a; }
-        
         .setting-group { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; }
         .setting-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-
-        select, input {
-            background: #333; color: white; border: 1px solid #444;
-            padding: 8px; border-radius: 6px; font-size: 14px; width: 100%;
-        }
-
-        .instruction-box {
-            background: #111; border-left: 4px solid #ff9f0a; padding: 15px;
-            margin-top: 20px; font-size: 13px; line-height: 1.6; color: #ccc; border-radius: 4px;
-        }
+        select, input { background: #333; color: white; border: 1px solid #444; padding: 8px; border-radius: 6px; font-size: 14px; width: 100%; }
+        .instruction-box { background: #111; border-left: 4px solid #ff9f0a; padding: 15px; margin-top: 20px; font-size: 13px; line-height: 1.6; color: #ccc; border-radius: 4px; }
         .instruction-box b { color: #fff; display: block; margin-bottom: 5px; font-size: 14px; }
         .mode-desc { font-style: italic; color: #ff9f0a; margin-top: 8px; font-size: 12px; }
-
         .stepper { display: flex; align-items: center; gap: 15px; }
         .stepper button { width: 40px; height: 40px; aspect-ratio: 1/1; border-radius: 8px; font-size: 20px; background: #444; color: white; }
         #offset-display { font-weight: bold; min-width: 60px; text-align: center; }
-
-        .save-btn {
-            width: auto; padding: 10px 40px; background: #2ecc71; border: none;
-            color: white; font-weight: bold; border-radius: 12px; font-size: 14px;
-            cursor: pointer; margin: 20px auto 10px; display: block;
-        }
+        .save-btn { width: auto; padding: 10px 40px; background: #2ecc71; border: none; color: white; font-weight: bold; border-radius: 12px; font-size: 14px; cursor: pointer; margin: 20px auto 10px; display: block; }
         .version-text { text-align: center; color: #555; font-size: 11px; margin-bottom: 30px; }
-
         /* Temas */
         body.theme-samsung { --bg-color: #010101; --btn-digit: #171718; --btn-func: #2d2d2e; --btn-func-text: #db7135; --btn-op: #318608; --key-shape: 50%; --key-spacing: 14px; }
         body.theme-xiaomi { --bg-color: #000000; --btn-digit: #242424; --btn-func: #242424; --btn-func-text: #ff8516; --btn-op: #ff8516; --key-shape: 12px; --key-spacing: 10px; }
@@ -125,67 +66,46 @@
         body.theme-realme { --bg-color: #000000; --btn-digit: #1a1a1a; --btn-func: #323232; --btn-func-text: #ffffff; --btn-op: #ff7c4a; --key-shape: 16px; --key-spacing: 12px; }
         body.theme-ios { --bg-color: #000000; --btn-digit: #333333; --btn-func: #a5a5a5; --btn-func-text: #000000; --btn-op: #ff9f0a; --key-shape: 50%; --key-spacing: 12px; }
         body.theme-default { --bg-color: #101010; --btn-digit: #2c2c2c; --btn-func: #a5a5a5; --btn-func-text: #000000; --btn-op: #ff9f0a; --key-shape: 32px; --key-spacing: 10px; }
-
         body.light-mode { --bg-color: #f7f7f7; --text-color: #000000; --btn-digit: #e8e8e8; --btn-digit-text: #000000; --btn-func: #f0f0f0; }
     </style>
 </head>
 <body class="theme-ios">
     <div id="status-dot"></div>
-    
     <div id="screen-container" onclick="handleMagicTouch()">
         <div id="history"></div>
-        <div id="display-container">
-            <div id="display">0</div>
-        </div>
+        <div id="display-container"><div id="display">0</div></div>
     </div>
-
     <div class="grid">
-        <button class="func" onclick="press('C')"
-                onmousedown="startCHold(event)" onmouseup="endCHold(event)" onmouseleave="endCHold(event)"
-                ontouchstart="startCHold(event)" ontouchend="endCHold(event)" ontouchcancel="endCHold(event)">
-            <span id="c-label">AC</span>
-        </button>
+        <button class="func" onclick="press('C')" onmousedown="startCHold()" onmouseup="endCHold()" ontouchstart="startCHold()" ontouchend="endCHold()"><span id="c-label">AC</span></button>
         <button class="func" onclick="press('back')">⌫</button>
         <button class="func" onclick="press('%')">%</button>
         <button class="op" onclick="press('÷')">÷</button>
-        
         <button class="digit" onclick="press('7')">7</button>
         <button class="digit" onclick="press('8')">8</button>
         <button class="digit" onclick="press('9')">9</button>
         <button class="op" onclick="press('×')">×</button>
-        
         <button class="digit" onclick="press('4')">4</button>
         <button class="digit" onclick="press('5')">5</button>
         <button class="digit" onclick="press('6')">6</button>
         <button class="op" onclick="press('-')">-</button>
-        
         <button class="digit" onclick="press('1')">1</button>
         <button class="digit" onclick="press('2')">2</button>
         <button class="digit" onclick="press('3')">3</button>
         <button class="op" onclick="press('+')">+</button>
-        
         <button class="digit" onclick="press('+/-')">±</button>
         <button class="digit" onclick="press('0')">0</button>
         <button class="digit" onclick="press('.')">,</button>
         <button class="op" onclick="press('=')">=</button>
     </div>
-
     <div id="settings-dialog">
         <h2>Ajustes Mágicos e Instrucciones</h2>
-
         <div class="setting-group">
-            <div class="setting-row">
-                <span>Modo Claro (Fondo Blanco)</span>
-                <input type="checkbox" id="is-white" style="width: 25px; height: 25px;" onchange="updateTheme()">
-            </div>
-            <div class="setting-row">
-                <span>Pantalla Completa Automática</span>
-                <input type="checkbox" id="auto-fullscreen" style="width: 25px; height: 25px;">
-            </div>
+            <div class="setting-row"><span>Modo Claro</span><input type="checkbox" id="is-white" style="width: 25px; height: 25px;" onchange="updateTheme()"></div>
+            <div class="setting-row"><span>Pantalla Completa Auto</span><input type="checkbox" id="auto-fullscreen" style="width: 25px; height: 25px;"></div>
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px; margin-top:10px;">
-                <span>Estilo Visual de la Calculadora:</span>
+                <span>Estilo Visual:</span>
                 <select id="device-style" onchange="updateTheme()">
-                    <option value="AUTO">Automático (Detectar Marca)</option>
+                    <option value="AUTO">Automático (Detectar)</option>
                     <option value="SAMSUNG">Samsung (One UI)</option>
                     <option value="XIAOMI">Xiaomi (HyperOS)</option>
                     <option value="PIXEL">Google Pixel</option>
@@ -195,75 +115,43 @@
                 </select>
             </div>
         </div>
-
         <h3>Efecto Mágico</h3>
         <div class="setting-group">
-            <label>Modo de Forzaje:<br>
-                <select id="magic-mode" onchange="updateModeInfo()">
-                    <option value="time">Fecha / Hora</option>
-                    <option value="fixed">Resultado Fijo</option>
-                    <option value="step">Paso a Paso</option>
-                </select>
-            </label>
-            <div id="mode-description" class="mode-desc"></div>
-            <br>
-
-            <label id="format-container">Formato de Fecha:<br>
-                <select id="date-format">
-                    <option value="ddmmaaaa_hhmm">DD/MM/AAAA HH:MM</option>
-                    <option value="ddmmaa_hhmm">DD/MM/AA HH:MM</option>
-                    <option value="mmddaaaa_hhmm">MM/DD/AAAA HH:MM</option>
-                    <option value="mmddaa_hhmm">MM/DD/AA HH:MM</option>
-                </select>
-            </label><br>
-
-            <label id="offset-container">Ajuste de Minutos (Extra):<br>
-                <div class="stepper">
-                    <button onclick="changeOffset(-1)">-1</button>
-                    <span id="offset-display">0 min</span>
-                    <button onclick="changeOffset(1)">+1</button>
-                    <button onclick="changeOffset(5)">+5</button>
-                </div>
-            </label>
-
-            <label id="fixed-container" style="display:none">Número Final Deseado:<br>
-                <input type="number" id="fixed-val" value="12345">
-            </label>
-
-            <label id="step-container" style="display:none">Número Secreto (Revelación):<br>
-                <input type="number" id="secret-digits" value="67890">
-            </label>
+            <label>Modo de Forzaje:<br><select id="magic-mode" onchange="updateModeInfo()">
+                <option value="time">Fecha / Hora</option>
+                <option value="fixed">Resultado Fijo</option>
+                <option value="step">Paso a Paso</option>
+            </select></label>
+            <div id="mode-description" class="mode-desc"></div><br>
+            <label id="format-container">Formato:<br><select id="date-format">
+                <option value="ddmmaaaa_hhmm">DD/MM/AAAA HH:MM</option>
+                <option value="ddmmaa_hhmm">DD/MM/AA HH:MM</option>
+                <option value="mmddaaaa_hhmm">MM/DD/AAAA HH:MM</option>
+                <option value="mmddaa_hhmm">MM/DD/AA HH:MM</option>
+            </select></label><br>
+            <label id="offset-container">Ajuste de Minutos:<br><div class="stepper">
+                <button onclick="changeOffset(-1)">-1</button><span id="offset-display">0 min</span><button onclick="changeOffset(1)">+1</button><button onclick="changeOffset(5)">+5</button>
+            </div></label>
+            <label id="fixed-container" style="display:none">Número Final:<br><input type="number" id="fixed-val" value="12345"></label>
+            <label id="step-container" style="display:none">Número Secreto:<br><input type="number" id="secret-digits" value="67890"></label>
         </div>
-
         <div class="instruction-box">
-            <b>GUÍA DE USO PROFESIONAL (v1.12)</b>
-            1. <b>ARMADO:</b> Doble toque en el visor. El punto blanco indica que está listo.<br><br>
-            2. <b>FORZAJE SEGURO:</b> Si pulsas un operador, teclea los dígitos. <b>Si pulsas '=' antes de terminar el número, la calculadora hará la cuenta real y el punto se pondrá NARANJA</b>. Esto te avisa de que aún debes sumar más para llegar al resultado mágico.<br><br>
-            3. <b>MODO PASO A PASO:</b> Cada tecla numérica que toques escribirá el siguiente dígito de tu número secreto. Úsalo para revelaciones directas sin sumas.<br><br>
-            4. <b>PANICO:</b> Toca '=' 3 veces rápido para resetear.<br><br>
+            <b>GUÍA PROFESIONAL v1.13</b>
+            1. <b>ARMADO:</b> Doble toque en visor. El punto blanco indica listo. <b>'C' no desarma el truco</b>.<br><br>
+            2. <b>HISTORIAL REAL:</b> Las sumas se acumulan en la parte superior. Al pulsar '=', el historial muestra la operación completa pero <b>el resultado solo se ve en grande</b>.<br><br>
+            3. <b>SEGURIDAD:</b> Si pulsas '=' antes de terminar el número forzado, hará la cuenta real y el punto se pondrá <b>NARANJA</b> (aviso de incompleto).<br><br>
+            4. <b>PANICO:</b> '=' 3 veces rápido para resetear.<br><br>
             5. <b>AJUSTES:</b> Mantén 'C' 3 segundos.
         </div>
-
         <button class="save-btn" onclick="saveAndClose()">Guardar y Cerrar</button>
-        <div class="version-text">PulseForce Web v1.12</div>
+        <div class="version-text">PulseForce Web v1.13</div>
     </div>
-
     <script>
         let display = "0", history = "", armed = false, pendingOp = null, prevVal = null, startFresh = true, revealIdx = 0, lastTap = 0, cTimer, panicCount = 0, lastPanicTime = 0, isHolding = false;
         let timeOffset = 0, currentTargetString = "";
-
         const storage = {
             save: () => {
-                const data = {
-                    timeOffset,
-                    mode: document.getElementById('magic-mode').value,
-                    format: document.getElementById('date-format').value,
-                    fixed: document.getElementById('fixed-val').value,
-                    secret: document.getElementById('secret-digits').value,
-                    style: document.getElementById('device-style').value,
-                    white: document.getElementById('is-white').checked,
-                    autoFS: document.getElementById('auto-fullscreen').checked
-                };
+                const data = { timeOffset, mode: document.getElementById('magic-mode').value, format: document.getElementById('date-format').value, fixed: document.getElementById('fixed-val').value, secret: document.getElementById('secret-digits').value, style: document.getElementById('device-style').value, white: document.getElementById('is-white').checked, autoFS: document.getElementById('auto-fullscreen').checked };
                 localStorage.setItem('pulseforce_web_prefs', JSON.stringify(data));
             },
             load: () => {
@@ -276,46 +164,38 @@
                 if (data.style) document.getElementById('device-style').value = data.style;
                 if (data.white !== undefined) document.getElementById('is-white').checked = data.white;
                 if (data.autoFS !== undefined) document.getElementById('auto-fullscreen').checked = data.autoFS;
-                updateTheme();
-                updateOffsetDisplay();
-                updateModeInfo();
+                updateTheme(); updateOffsetDisplay(); updateModeInfo();
             }
         };
-
         function updateTheme() {
             let style = document.getElementById('device-style').value;
             if (style === 'AUTO') {
-                const ua = navigator.userAgent || navigator.vendor || window.opera;
-                const lowUA = ua.toLowerCase();
-                if (/xiaomi|miui|redmi|poco/i.test(lowUA)) style = "XIAOMI";
-                else if (/samsung/i.test(lowUA)) style = "SAMSUNG";
-                else if (/google|pixel/i.test(lowUA)) style = "PIXEL";
-                else if (/motorola|moto /i.test(lowUA)) style = "MOTOROLA";
-                else if (/realme|oppo/i.test(lowUA)) style = "REALME_OPPO";
-                else if (/iphone|ipad|ipod/i.test(lowUA)) style = "IOS";
-                else if (/android/i.test(lowUA)) style = "DEFAULT";
-                else style = "IOS";
+                const ua = (navigator.userAgent || navigator.vendor || window.opera).toLowerCase();
+                if (/xiaomi|miui|redmi|poco/i.test(ua)) style = "XIAOMI";
+                else if (/samsung/i.test(ua)) style = "SAMSUNG";
+                else if (/google|pixel/i.test(ua)) style = "PIXEL";
+                else if (/motorola|moto /i.test(ua)) style = "MOTOROLA";
+                else if (/realme|oppo/i.test(ua)) style = "REALME_OPPO";
+                else if (/iphone|ipad|ipod/i.test(ua)) style = "IOS";
+                else style = "DEFAULT";
             }
             document.body.className = "theme-" + style.toLowerCase().replace('_','-');
             if (document.getElementById('is-white').checked) document.body.classList.add('light-mode');
         }
-
         function updateModeInfo() {
             const m = document.getElementById('magic-mode').value;
-            const desc = document.getElementById('mode-description');
             document.getElementById('format-container').style.display = m === 'time' ? 'block' : 'none';
             document.getElementById('offset-container').style.display = m === 'time' ? 'block' : 'none';
             document.getElementById('fixed-container').style.display = m === 'fixed' ? 'block' : 'none';
             document.getElementById('step-container').style.display = m === 'step' ? 'block' : 'none';
-            if(m === 'time') desc.innerText = "El resultado final será la FECHA y HORA actual.";
-            else if(m === 'fixed') desc.innerText = "El resultado final será el número fijo configurado.";
-            else desc.innerText = "Modo Revelación: Cada tecla numérica escribirá un dígito de tu número secreto.";
+            const desc = document.getElementById('mode-description');
+            if(m === 'time') desc.innerText = "Resultado: FECHA y HORA actual.";
+            else if(m === 'fixed') desc.innerText = "Resultado: Número fijo configurado.";
+            else desc.innerText = "Modo Revelación: Cada tecla numérica escribe un dígito del número secreto.";
         }
-
         function changeOffset(v) { timeOffset += v; updateOffsetDisplay(); }
         function updateOffsetDisplay() { document.getElementById('offset-display').innerText = (timeOffset > 0 ? "+" : "") + timeOffset + " min"; }
         function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); }
-
         function updateUI() {
             const dispElem = document.getElementById('display');
             dispElem.innerText = display.replace('.', ',');
@@ -328,12 +208,8 @@
             else if (len <= 12) dispElem.style.fontSize = "54px";
             else dispElem.style.fontSize = "38px";
         }
-
-        function haptic() { if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(10); }
-
         function press(key) {
             if (isHolding) return;
-            haptic();
             if (document.getElementById('auto-fullscreen').checked) toggleFullScreen();
             const now = Date.now();
             if (key === '=') {
@@ -347,16 +223,11 @@
             } else if (key === 'back') {
                 if (startFresh) return;
                 display = display.length > 1 ? display.slice(0, -1) : "0";
-            } else if (!isNaN(key) || key === '.') {
-                handleDigit(key);
-            } else if (key === '+/-') {
-                if (display !== "0") display = display.startsWith('-') ? display.slice(1) : '-' + display;
-            } else {
-                handleOp(key);
-            }
+            } else if (!isNaN(key) || key === '.') { handleDigit(key); }
+            else if (key === '+/-') { if (display !== "0") display = display.startsWith('-') ? display.slice(1) : '-' + display; }
+            else { handleOp(key); }
             updateUI();
         }
-
         function getTarget() {
             const mode = document.getElementById('magic-mode').value;
             if (mode === 'fixed') return document.getElementById('fixed-val').value;
@@ -371,7 +242,6 @@
             if (fmt === 'mmddaaaa_hhmm') return m + d + yF + hh + mm;
             return m + d + yS + hh + mm;
         }
-
         function handleDigit(d) {
             if (armed) {
                 let target = getTarget();
@@ -387,7 +257,6 @@
                         revealIdx++; startFresh = false;
                         document.getElementById('status-dot').classList.remove('incomplete');
                     }
-                    return;
                 } else {
                     currentTargetString = target;
                     if (revealIdx < currentTargetString.length) {
@@ -395,66 +264,52 @@
                         revealIdx++; startFresh = false;
                         document.getElementById('status-dot').classList.remove('incomplete');
                     }
-                    return;
                 }
+                return;
             }
             if (d === '.') { if (!display.includes('.')) display += '.'; }
             else { if (startFresh || display === "0") { display = d; startFresh = false; } else display += d; }
         }
-
         function handleOp(op) {
             if (op === '=') {
-                if (armed) {
-                    if (revealIdx >= currentTargetString.length && currentTargetString !== "") {
-                        display = getTarget();
-                        history = history === "" ? (display + " =") : (history + " " + display + " =");
-                        armed = false; document.getElementById('status-dot').className = '';
-                    } else {
-                        document.getElementById('status-dot').classList.add('incomplete');
-                        realMath();
-                    }
-                } else realMath();
+                if (armed && revealIdx >= currentTargetString.length && currentTargetString !== "") {
+                    display = getTarget();
+                    history = (history === "" || history.endsWith('=')) ? (display + " =") : (history + " " + display + " =");
+                    armed = false; document.getElementById('status-dot').className = '';
+                } else {
+                    if(armed) document.getElementById('status-dot').classList.add('incomplete');
+                    realMath(true);
+                }
                 prevVal = null; pendingOp = null; startFresh = true;
             } else if (op === '%') {
                 display = (parseFloat(display) / 100).toString(); startFresh = true;
             } else {
-                if (prevVal !== null && !startFresh) realMath(); else prevVal = parseFloat(display);
+                if (prevVal !== null && !startFresh) realMath(false); else prevVal = parseFloat(display);
                 pendingOp = op;
-                history = history === "" || history.endsWith('=') ? (display + " " + op) : (history + " " + display + " " + op);
+                history = (history === "" || history.endsWith('=')) ? (display + " " + op) : (history + " " + display + " " + op);
                 startFresh = true;
                 if (armed) { revealIdx = 0; currentTargetString = ""; }
             }
         }
-
-        function realMath() {
+        function realMath(isEqual) {
             if (prevVal !== null && pendingOp) {
                 let a = prevVal, b = parseFloat(display), res = 0;
                 if (pendingOp === '+') res = a + b;
                 else if (pendingOp === '-') res = a - b;
                 else if (pendingOp === '×') res = a * b;
                 else if (pendingOp === '÷') res = b !== 0 ? a / b : 0;
-                history += " " + display + " =";
+                if (isEqual) history = (history === "" || history.endsWith('=')) ? (display + " =") : (history + " " + display + " =");
                 display = res.toString();
+                if (!isEqual) prevVal = res;
             }
         }
-
         function handleMagicTouch() {
             if (document.getElementById('auto-fullscreen').checked) toggleFullScreen();
             const now = Date.now();
-            if (now - lastTap < 400) {
-                armed = !armed;
-                document.getElementById('status-dot').className = armed ? 'show' : '';
-                revealIdx = 0; currentTargetString = ""; haptic();
-            }
+            if (now - lastTap < 400) { armed = !armed; document.getElementById('status-dot').className = armed ? 'show' : ''; revealIdx = 0; currentTargetString = ""; }
             lastTap = now;
         }
-
-        function startCHold(e) {
-            isHolding = false;
-            cTimer = setTimeout(() => {
-                isHolding = true; document.getElementById('settings-dialog').style.display = 'block'; haptic();
-            }, 3000);
-        }
+        function startCHold() { isHolding = false; cTimer = setTimeout(() => { isHolding = true; document.getElementById('settings-dialog').style.display = 'block'; }, 3000); }
         function endCHold() { clearTimeout(cTimer); setTimeout(() => isHolding = false, 200); }
         function saveAndClose() { storage.save(); document.getElementById('settings-dialog').style.display = 'none'; }
         window.onload = storage.load;
