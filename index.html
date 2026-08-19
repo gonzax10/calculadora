@@ -105,16 +105,18 @@
             margin-top: 20px; font-size: 13px; line-height: 1.6; color: #ccc; border-radius: 4px;
         }
         .instruction-box b { color: #fff; display: block; margin-bottom: 5px; font-size: 14px; }
+        .mode-desc { font-style: italic; color: #ff9f0a; margin-top: 8px; font-size: 12px; }
 
         .stepper { display: flex; align-items: center; gap: 15px; }
         .stepper button { width: 40px; height: 40px; aspect-ratio: 1/1; border-radius: 8px; font-size: 20px; background: #444; color: white; }
         #offset-display { font-weight: bold; min-width: 60px; text-align: center; }
 
         .save-btn {
-            width: 100%; padding: 15px; background: #2ecc71; border: none;
-            color: white; font-weight: bold; border-radius: 12px; font-size: 16px;
-            cursor: pointer; margin-top: 20px; margin-bottom: 40px;
+            width: auto; padding: 10px 30px; background: #2ecc71; border: none;
+            color: white; font-weight: bold; border-radius: 8px; font-size: 14px;
+            cursor: pointer; margin: 20px auto 10px; display: block;
         }
+        .version-text { text-align: center; color: #555; font-size: 11px; margin-bottom: 30px; }
 
         /* Temas */
         body.theme-samsung { --bg-color: #010101; --btn-digit: #171718; --btn-func: #2d2d2e; --btn-func-text: #db7135; --btn-op: #318608; --key-shape: 50%; --key-spacing: 14px; }
@@ -123,6 +125,7 @@
         body.theme-motorola { --bg-color: #1f1f1f; --btn-digit: #272a2e; --btn-func: #5ab3f1; --btn-func-text: #0d1c42; --btn-op: #d3e2fd; --btn-op-text: #0d1c42; --key-shape: 50%; --key-spacing: 10px; }
         body.theme-realme { --bg-color: #000000; --btn-digit: #1a1a1a; --btn-func: #323232; --btn-func-text: #ffffff; --btn-op: #ff7c4a; --key-shape: 16px; --key-spacing: 12px; }
         body.theme-ios { --bg-color: #000000; --btn-digit: #333333; --btn-func: #a5a5a5; --btn-func-text: #000000; --btn-op: #ff9f0a; --key-shape: 50%; --key-spacing: 12px; }
+        body.theme-default { --bg-color: #101010; --btn-digit: #2c2c2c; --btn-func: #a5a5a5; --btn-func-text: #000000; --btn-op: #ff9f0a; --key-shape: 32px; --key-spacing: 10px; }
 
         body.light-mode { --bg-color: #f7f7f7; --text-color: #000000; --btn-digit: #e8e8e8; --btn-digit-text: #000000; --btn-func: #f0f0f0; }
         body.light-mode #history { color: rgba(0,0,0,0.5); }
@@ -174,13 +177,17 @@
 
         <div class="setting-group">
             <div class="setting-row">
-                <span>Modo Claro</span>
+                <span>Modo Claro (Fondo Blanco)</span>
                 <input type="checkbox" id="is-white" style="width: 25px; height: 25px;" onchange="updateTheme()">
             </div>
+            <div class="setting-row">
+                <span>Pantalla Completa Automática</span>
+                <input type="checkbox" id="auto-fullscreen" style="width: 25px; height: 25px;">
+            </div>
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                <span>Estilo Visual:</span>
+                <span>Estilo Visual de la Calculadora:</span>
                 <select id="device-style" onchange="updateTheme()">
-                    <option value="AUTO">Automático (Detección)</option>
+                    <option value="AUTO">Automático (Detectar Marca)</option>
                     <option value="SAMSUNG">Samsung (One UI)</option>
                     <option value="XIAOMI">Xiaomi (HyperOS)</option>
                     <option value="PIXEL">Google Pixel</option>
@@ -194,14 +201,16 @@
         <h3>Efecto Mágico</h3>
         <div class="setting-group">
             <label>Modo de Forzaje:<br>
-                <select id="magic-mode">
+                <select id="magic-mode" onchange="updateModeInfo()">
                     <option value="time">Fecha / Hora</option>
                     <option value="fixed">Resultado Fijo</option>
                     <option value="step">Paso a Paso</option>
                 </select>
-            </label><br><br>
+            </label>
+            <div id="mode-description" class="mode-desc"></div>
+            <br>
 
-            <label id="format-container">Formato Fecha:<br>
+            <label id="format-container">Formato de Fecha:<br>
                 <select id="date-format">
                     <option value="ddmmaaaa_hhmm">DD/MM/AAAA HH:MM</option>
                     <option value="ddmmaa_hhmm">DD/MM/AA HH:MM</option>
@@ -210,7 +219,7 @@
                 </select>
             </label><br>
 
-            <label id="offset-container">Ajuste de Minutos:<br>
+            <label id="offset-container">Ajuste de Minutos (Extra):<br>
                 <div class="stepper">
                     <button onclick="changeOffset(-1)">-1</button>
                     <span id="offset-display">0 min</span>
@@ -219,24 +228,25 @@
                 </div>
             </label>
 
-            <label id="fixed-container" style="display:none">Número Fijo:<br>
+            <label id="fixed-container" style="display:none">Número Final Deseado:<br>
                 <input type="number" id="fixed-val" value="12345">
             </label>
 
-            <label id="step-container" style="display:none">Número Secreto (Paso a Paso):<br>
+            <label id="step-container" style="display:none">Número Secreto (Revelación):<br>
                 <input type="number" id="secret-digits" value="67890">
             </label>
         </div>
 
         <div class="instruction-box">
-            <b>PULSEFORCE MAGIC APP (Web)</b>
-            1. <b>ACTIVACIÓN:</b> Haz DOBLE TOQUE sobre el visor (los números). Verás un punto blanco tenue arriba a la derecha que indica que está ARMADO.<br><br>
-            2. <b>FORZAJE INTELIGENTE:</b> Si pulsas un operador (+, -, x, /), cualquier número que toques después escribirá automáticamente los dígitos necesarios para que el resultado final sea la fecha/hora o tu número fijo. La calculadora se bloquea al terminar el número hasta pulsar '='.<br><br>
-            3. <b>MODO PÁNICO:</b> Pulsa '=' 3 veces rápido para recargar la app y borrar todo rastro.<br><br>
+            <b>GUÍA DE USO PROFESIONAL</b>
+            1. <b>ACTIVACIÓN:</b> Haz DOBLE TOQUE sobre el visor. Un punto blanco casi invisible aparecerá arriba. Ya estás armado.<br><br>
+            2. <b>MAGIA INTELIGENTE:</b> Si pulsas un operador (ej. '+'), cualquier número que toque el espectador escribirá automáticamente los dígitos necesarios para llegar a tu objetivo. Al terminar, la calculadora se bloquea hasta pulsar '='.<br><br>
+            3. <b>PANICO:</b> Toca '=' 3 veces rápido para cerrar/resetear todo.<br><br>
             4. <b>AJUSTES:</b> Mantén pulsado 'C' durante 3 segundos.
         </div>
 
         <button class="save-btn" onclick="saveAndClose()">Guardar y Cerrar</button>
+        <div class="version-text">PulseForce Web v1.12</div>
     </div>
 
     <script>
@@ -253,12 +263,13 @@
                     fixed: document.getElementById('fixed-val').value,
                     secret: document.getElementById('secret-digits').value,
                     style: document.getElementById('device-style').value,
-                    white: document.getElementById('is-white').checked
+                    white: document.getElementById('is-white').checked,
+                    autoFS: document.getElementById('auto-fullscreen').checked
                 };
-                localStorage.setItem('pulseforce_prefs', JSON.stringify(data));
+                localStorage.setItem('pulseforce_web_prefs', JSON.stringify(data));
             },
             load: () => {
-                const data = JSON.parse(localStorage.getItem('pulseforce_prefs') || '{}');
+                const data = JSON.parse(localStorage.getItem('pulseforce_web_prefs') || '{}');
                 if (data.timeOffset !== undefined) timeOffset = data.timeOffset;
                 if (data.mode) document.getElementById('magic-mode').value = data.mode;
                 if (data.format) document.getElementById('date-format').value = data.format;
@@ -266,30 +277,56 @@
                 if (data.secret) document.getElementById('secret-digits').value = data.secret;
                 if (data.style) document.getElementById('device-style').value = data.style;
                 if (data.white !== undefined) document.getElementById('is-white').checked = data.white;
+                if (data.autoFS !== undefined) document.getElementById('auto-fullscreen').checked = data.autoFS;
                 updateTheme();
                 updateOffsetDisplay();
+                updateModeInfo();
             }
         };
 
         function updateTheme() {
             let style = document.getElementById('device-style').value;
             if (style === 'AUTO') {
-                const ua = navigator.userAgent.toLowerCase();
-                if (ua.includes("samsung")) style = "SAMSUNG";
-                else if (ua.includes("xiaomi") || ua.includes("redmi") || ua.includes("poco")) style = "XIAOMI";
-                else if (ua.includes("pixel") || ua.includes("google")) style = "PIXEL";
-                else if (ua.includes("motorola") || ua.includes("moto")) style = "MOTOROLA";
-                else if (ua.includes("realme") || ua.includes("oppo")) style = "REALME_OPPO";
-                else if (ua.includes("iphone") || ua.includes("ipad")) style = "IOS";
-                else style = "DEFAULT";
+                const ua = navigator.userAgent || navigator.vendor || window.opera;
+                const lowUA = ua.toLowerCase();
+                if (/samsung/i.test(lowUA)) style = "SAMSUNG";
+                else if (/xiaomi|miui|redmi|poco/i.test(lowUA)) style = "XIAOMI";
+                else if (/google|pixel/i.test(lowUA)) style = "PIXEL";
+                else if (/motorola|moto /i.test(lowUA)) style = "MOTOROLA";
+                else if (/realme|oppo/i.test(lowUA)) style = "REALME_OPPO";
+                else if (/iphone|ipad|ipod/i.test(lowUA)) style = "IOS";
+                else if (/android/i.test(lowUA)) style = "DEFAULT";
+                else style = "IOS";
             }
 
             document.body.className = "theme-" + style.toLowerCase().replace('_','-');
             if (document.getElementById('is-white').checked) document.body.classList.add('light-mode');
         }
 
+        function updateModeInfo() {
+            const m = document.getElementById('magic-mode').value;
+            const desc = document.getElementById('mode-description');
+
+            document.getElementById('format-container').style.display = m === 'time' ? 'block' : 'none';
+            document.getElementById('offset-container').style.display = m === 'time' ? 'block' : 'none';
+            document.getElementById('fixed-container').style.display = m === 'fixed' ? 'block' : 'none';
+            document.getElementById('step-container').style.display = m === 'step' ? 'block' : 'none';
+
+            if(m === 'time') desc.innerText = "El resultado final será la FECHA y HORA actual del dispositivo.";
+            else if(m === 'fixed') desc.innerText = "El resultado final será EXACTAMENTE el número que escribas abajo.";
+            else desc.innerText = "El número secreto se irá escribiendo dígito a dígito cada vez que toques CUALQUIER tecla numérica.";
+        }
+
         function changeOffset(v) { timeOffset += v; updateOffsetDisplay(); }
         function updateOffsetDisplay() { document.getElementById('offset-display').innerText = (timeOffset > 0 ? "+" : "") + timeOffset + " min"; }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error al activar pantalla completa: ${err.message}`);
+                });
+            }
+        }
 
         function updateUI() {
             const dispElem = document.getElementById('display');
@@ -306,15 +343,19 @@
             else dispElem.style.fontSize = "38px";
         }
 
+        function haptic() { if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(10); }
+
         function press(key) {
             if (isHolding) return;
-            const now = Date.now();
+            haptic();
+            if (document.getElementById('auto-fullscreen').checked) toggleFullScreen();
             
+            const now = Date.now();
             if (key === '=') {
                 if (now - lastPanicTime < 2000) panicCount++;
                 else panicCount = 1;
                 lastPanicTime = now;
-                if (panicCount >= 3) { window.location.reload(); return; }
+                if (panicCount >= 3) { window.location.href = "about:blank"; return; }
             }
             
             if (key === 'C') {
@@ -356,7 +397,6 @@
             if (armed) {
                 let target = getTarget();
                 if (pendingOp && prevVal !== null && document.getElementById('magic-mode').value !== 'step') {
-                    // Forzaje inteligente por diferencia
                     let targetNum = parseFloat(target);
                     let needed = 0;
                     if (pendingOp === '+') needed = targetNum - prevVal;
@@ -371,9 +411,8 @@
                     }
                     return;
                 } else {
-                    // Revelación directa
                     if (revealIdx < target.length) {
-                        display = revealIdx === 0 ? target[revealIdx] : display + target[revealIdx];
+                        display = (revealIdx === 0 || startFresh) ? target[revealIdx] : display + target[revealIdx];
                         revealIdx++; startFresh = false;
                     }
                     return;
@@ -423,22 +462,24 @@
         }
 
         function handleMagicTouch() {
+            if (document.getElementById('auto-fullscreen').checked) toggleFullScreen();
             const now = Date.now();
             if (now - lastTap < 400) {
                 armed = !armed;
                 document.getElementById('status-dot').className = armed ? 'show' : '';
                 revealIdx = 0;
+                haptic();
             }
             lastTap = now;
         }
 
         function startCHold(e) {
-            if (e.cancelable) e.preventDefault();
             isHolding = false;
             cTimer = setTimeout(() => {
                 isHolding = true;
                 document.getElementById('settings-dialog').style.display = 'block';
-            }, 2000);
+                haptic();
+            }, 3000);
         }
         function endCHold() { clearTimeout(cTimer); setTimeout(() => isHolding = false, 200); }
         function saveAndClose() {
@@ -447,15 +488,6 @@
         }
 
         window.onload = storage.load;
-
-        // Mostrar/Ocultar campos según modo
-        document.getElementById('magic-mode').onchange = (e) => {
-            const m = e.target.value;
-            document.getElementById('format-container').style.display = m === 'time' ? 'block' : 'none';
-            document.getElementById('offset-container').style.display = m === 'time' ? 'block' : 'none';
-            document.getElementById('fixed-container').style.display = m === 'fixed' ? 'block' : 'none';
-            document.getElementById('step-container').style.display = m === 'step' ? 'block' : 'none';
-        };
     </script>
 </body>
 </html>
