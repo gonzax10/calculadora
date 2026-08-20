@@ -2,7 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Calculadora</title>
     <style>
         :root {
@@ -14,105 +16,74 @@
             --display-text-white: #FFFFFF;
             --display-text-gray: rgba(255, 255, 255, 0.5);
             --cursor-color: #007AFF;
+            --key-shape: 20px;
+            --key-spacing: 12px;
+            --font-family: sans-serif;
+        }
+
+        /* TEMAS POR MARCA */
+        body.theme-samsung { --bg-color: #010101; --btn-digit-bg: #171718; --btn-orange-text: #318608; --btn-equal-bg: #318608; --key-shape: 50%; --key-spacing: 14px; }
+        body.theme-pixel { --bg-color: #1b1b1f; --btn-digit-bg: #2d2f31; --btn-orange-text: #a8c7fa; --btn-equal-bg: #a8c7fa; --btn-text-color: #e3e2e6; --key-shape: 28px; }
+        body.theme-motorola { --bg-color: #1f1f1f; --btn-digit-bg: #272a2e; --btn-orange-text: #5ab3f1; --btn-equal-bg: #d3e2fd; --key-shape: 50%; }
+        body.theme-ios { --bg-color: #000000; --btn-digit-bg: #333333; --btn-orange-text: #ff9f0a; --btn-equal-bg: #ff9f0a; --key-shape: 50%; --font-family: -apple-system, blinkmacsystemfont; }
+        body.theme-xiaomi { --bg-color: #000000; --btn-digit-bg: #1B1B1B; --btn-orange-text: #FF8516; --btn-equal-bg: #FF8516; --key-shape: 22px; --key-spacing: 10px; }
+
+        body.light-mode {
+            --bg-color: #f7f7f7; --display-text-white: #000000; --display-text-gray: rgba(0,0,0,0.4);
+            --btn-digit-bg: #e8e8e8; --btn-text-color: #000000;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: white;
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--display-text-white);
+            font-family: var(--font-family); height: 100vh; height: 100dvh;
+            display: flex; flex-direction: column; overflow: hidden; user-select: none;
+            -webkit-tap-highlight-color: transparent; transition: background-color 0.3s;
         }
 
-        /* Indicador Secreto en barra superior simulada */
-        #magic-dot {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            width: 5px;
-            height: 5px;
-            z-index: 100;
-            opacity: 0.3;
+        /* Notificación Invisible */
+        #magic-notif {
+            position: absolute; top: 8px; left: 10px; width: 6px; height: 6px;
+            z-index: 1000; opacity: 0.3; pointer-events: none;
         }
-        .dot-ready { background-color: white; border-radius: 50%; width: 5px; height: 5px; }
-        .dot-insufficient { background-color: white; border-radius: 0; width: 8px; height: 2px; margin-top: 2px; }
+        .notif-dot { background-color: white; border-radius: 50%; }
+        .notif-dash { background-color: white; width: 10px; height: 2px; border-radius: 0; }
 
         /* Visor Xiaomi Flow */
         #display-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 20px;
-            text-align: right;
-            overflow-y: auto;
+            flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 20px; text-align: right; overflow-y: auto;
         }
 
         #expression {
-            font-size: 32px;
-            color: var(--display-text-white);
-            word-break: break-all;
-            transition: all 0.3s ease;
-            line-height: 1.2;
+            font-size: 32px; color: var(--display-text-white); word-break: break-all;
+            transition: all 0.3s ease; line-height: 1.2;
         }
-        #expression.history-mode {
-            color: var(--display-text-gray);
-            font-size: 26px;
-        }
+        #expression.history-mode { color: var(--display-text-gray); font-size: 26px; }
 
         #result {
-            font-size: 32px;
-            color: var(--display-text-gray);
-            margin-top: 10px;
-            min-height: 1.2em;
-            opacity: 0;
-            transition: all 0.3s ease;
+            font-size: 32px; color: var(--display-text-gray); margin-top: 10px;
+            min-height: 1.2em; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #result.visible { opacity: 1; }
-        #result.final-mode {
-            color: var(--display-text-white);
-            font-size: 64px;
-            opacity: 1;
-        }
+        #result.final-mode { color: var(--display-text-white); font-size: 64px; opacity: 1; }
 
         #cursor {
-            display: inline-block;
-            width: 2px;
-            height: 1em;
-            background-color: var(--cursor-color);
-            margin-left: 2px;
-            vertical-align: middle;
-            animation: blink 1s step-end infinite;
+            display: inline-block; width: 2px; height: 1em; background-color: var(--cursor-color);
+            margin-left: 2px; vertical-align: middle; animation: blink 1s step-end infinite;
         }
         @keyframes blink { 50% { opacity: 0; } }
 
         /* Teclado */
         #keypad {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            padding: 15px;
-            padding-bottom: 30px;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: var(--key-spacing); padding: 15px; padding-bottom: max(30px, env(safe-area-inset-bottom));
         }
 
         .btn {
-            height: 75px;
-            border-radius: 22px;
-            border: none;
-            background-color: var(--btn-digit-bg);
-            color: var(--btn-text-color);
-            font-size: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: filter 0.1s;
+            height: 75px; border-radius: var(--key-shape); border: none;
+            background-color: var(--btn-digit-bg); color: var(--btn-text-color);
+            font-size: 32px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: filter 0.1s;
         }
         .btn:active { filter: brightness(1.5); }
         .btn-func { color: var(--btn-orange-text); }
@@ -122,20 +93,13 @@
 
         /* Modales */
         .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            z-index: 1000;
-            flex-direction: column;
-            padding: 25px;
-            box-sizing: border-box;
-            overflow-y: auto;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 2000; flex-direction: column; padding: 25px;
+            box-sizing: border-box; overflow-y: auto;
         }
         .modal-content { max-width: 500px; margin: auto; width: 100%; }
         h2 { color: var(--btn-orange-text); margin-top: 0; }
         h3 { border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 30px; font-family: serif; }
-        p { line-height: 1.6; font-size: 15px; }
         .btn-modal {
             width: 100%; height: 55px; border-radius: 18px; border: none;
             margin-top: 20px; font-size: 18px; font-weight: bold;
@@ -149,11 +113,13 @@
             font-size: 16px; box-sizing: border-box;
         }
         label { color: #888; font-size: 12px; text-transform: uppercase; margin-top: 10px; display: block; }
+        .stepper { display: flex; align-items: center; justify-content: space-between; background: #111; border-radius: 12px; padding: 5px; }
+        .stepper button { width: 50px; height: 45px; background: #333; border: none; color: white; border-radius: 8px; font-size: 20px; }
     </style>
 </head>
-<body>
+<body class="theme-xiaomi">
 
-    <div id="magic-dot"></div>
+    <div id="magic-notif"></div>
 
     <div id="display-area" onclick="onDoubleTap()">
         <div id="expression">0<span id="cursor"></span></div>
@@ -161,11 +127,8 @@
     </div>
 
     <div id="keypad">
-        <button class="btn btn-func"
-                onmousedown="handleACDown()" onmouseup="handleACUp()"
-                ontouchstart="handleACDown()" ontouchend="handleACUp()">AC</button>
+        <button class="btn btn-func" onmousedown="handleACDown()" onmouseup="handleACUp()" ontouchstart="handleACDown()" ontouchend="handleACUp()">AC</button>
         <button class="btn btn-func" onclick="onBackspace()">
-            <!-- Icono Backspace Xiaomi Exacto -->
             <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22,3H7c-0.69,0-1.23,0.35-1.59,0.88L0,12l5.41,8.11C5.77,20.64,6.31,21,7,21h15c1.1,0,2-0.9,2-2V5C24,3.9,23.1,3,22,3z M18.3,16.3l-1.4,1.4L13,13.8l-3.9,3.9l-1.4-1.4l3.9-3.9l-3.9-3.9l1.4-1.4l3.9,3.9l3.9-3.9l1.4,1.4L14.4,12.5L18.3,16.3z"/></svg>
         </button>
         <button class="btn btn-func" onclick="onOperator('%')">%</button>
@@ -187,13 +150,12 @@
         <button class="btn btn-func" onclick="onOperator('+')">+</button>
 
         <button class="btn">
-            <!-- Icono Conversion Xiaomi Exacto -->
             <svg class="icon-svg" viewBox="0 0 24 24">
                 <path d="M7 10h4v4h-4zM13 10h4v4h-4z" opacity=".3"/>
                 <path d="M19 8c-0.3-1.2-1.1-2.3-2.2-3l0.8-1.5L14 5l3.1 1.5l0.8-1.5c0.7 0.4 1.2 1.1 1.6 1.8 0.4 1.1 0.3 2.3-0.3 3.3l1.3 1.3C21.7 11 21.8 9.4 19 8z"/>
                 <path d="M5 16c0.3 1.2 1.1 2.3 2.2 3l-0.8 1.5L10 19l-3.1-1.5-0.8 1.5c-0.7-0.4-1.2-1.1-1.6-1.8-0.4-1.1-0.3-2.3 0.3-3.3l-1.3-1.3C2.3 13 2.2 14.6 5 16z"/>
-                <rect x="8" y="8" width="5" height="5" rx="1" stroke="#FF8516" stroke-width="1.5" fill="none"/>
-                <rect x="11" y="11" width="5" height="5" rx="1" stroke="#FF8516" stroke-width="1.5" fill="none"/>
+                <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                <rect x="11" y="11" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/>
             </svg>
         </button>
         <button class="btn" onclick="onDigit('0')">0</button>
@@ -201,168 +163,164 @@
         <button class="btn btn-equal" onclick="onEquals()">=</button>
     </div>
 
-    <!-- Mensaje de Bienvenida -->
+    <!-- Bienvenida -->
     <div id="welcome-modal" class="modal">
         <div class="modal-content">
-            <h2 id="txt-welcome-title">Bienvenido</h2>
-            <p id="txt-welcome-msg">Para acceder al menú secreto mantén presionado AC durante 3 segundos.</p>
+            <h2 id="w-title">Bienvenido</h2>
+            <p id="w-msg"></p>
             <button class="btn-modal" onclick="closeWelcome()">Aceptar</button>
             <button class="btn-modal btn-secondary" onclick="disableWelcome()">NO VOLVER A MOSTRAR</button>
         </div>
     </div>
 
-    <!-- Menu Secreto -->
+    <!-- Grimorio -->
     <div id="settings-modal" class="modal">
         <div class="modal-content">
-            <h2 style="font-family: serif; letter-spacing: 1px;">GRIMORIO ARCANO</h2>
+            <h2 style="font-family: serif;">GRIMORIO ARCANO</h2>
 
-            <label>Modo de Forzaje</label>
+            <label>Estilo Visual</label>
+            <select id="set-style" onchange="applyTheme()">
+                <option value="AUTO">Automático (Detectar)</option>
+                <option value="XIAOMI">Xiaomi (HyperOS)</option>
+                <option value="IOS">iOS (iPhone)</option>
+                <option value="SAMSUNG">Samsung (One UI)</option>
+                <option value="PIXEL">Google Pixel</option>
+                <option value="MOTOROLA">Motorola</option>
+            </select>
+
+            <label>Modo Claro</label>
+            <input type="checkbox" id="set-white" style="width: 25px; height: 25px;" onchange="applyTheme()">
+
+            <label>Efecto Mágico</label>
             <select id="set-mode" onchange="toggleSettingsUI()">
                 <option value="FECHA_HORA">Fecha / Hora</option>
                 <option value="RESULTADO_FIJO">Resultado Fijo</option>
                 <option value="REVELACION_PASO_A_PASO">Revelación Paso a Paso</option>
             </select>
 
+            <div id="ui-time">
+                <label>Formato de Fecha</label>
+                <select id="set-format">
+                    <option value="ddmmaaaa_hhmm">DD/MM/AAAA HH:MM</option>
+                    <option value="ddmmaa_hhmm">DD/MM/AA HH:MM</option>
+                    <option value="mmddaaaa_hhmm">MM/DD/AAAA HH:MM</option>
+                </select>
+                <label>Ajuste de Minutos</label>
+                <div class="stepper">
+                    <button onclick="changeOffset(-1)">-1</button>
+                    <span id="offset-display">0 min</span>
+                    <button onclick="changeOffset(1)">+1</button>
+                    <button onclick="changeOffset(5)">+5</button>
+                </div>
+            </div>
+
             <div id="ui-fixed" style="display:none">
-                <label>Número a forzar</label>
-                <input type="number" id="set-fixed" placeholder="1234.56">
+                <label>Número Final</label>
+                <input type="number" id="set-fixed">
             </div>
 
             <div id="ui-secret" style="display:none">
-                <label>Número secreto</label>
-                <input type="text" id="set-secret" placeholder="9876">
+                <label>Número Secreto</label>
+                <input type="text" id="set-secret">
             </div>
 
             <label>Acceso Remoto</label>
-            <p style="font-size: 12px; font-style: normal; margin-bottom: 2px;">Utiliza este enlace desde otro dispositivo:</p>
-            <input type="text" value="https://rb.gy/5xmw4r" readonly style="color: var(--btn-orange-text); border-color: var(--btn-orange-text);">
+            <p style="font-size: 11px;">Enlace para otros dispositivos:</p>
+            <input type="text" value="https://rb.gy/5xmw4r" readonly style="color: #FF8516;">
 
-            <h3 style="font-family: serif; font-weight: bold; border-bottom: 2px solid #FF8516;">Tratado de la Aritmética Arcano</h3>
-            <div id="tutorial-body" style="font-style: italic; font-family: serif; font-size: 14px; color: #aaa; padding: 10px 0;"></div>
+            <h3 style="border-bottom: 2px solid #FF8516;">Tratado de la Aritmética Arcano</h3>
+            <div id="tutorial-body" style="font-style: italic; font-family: serif; font-size: 14px; color: #aaa;"></div>
 
-            <button class="btn-modal" onclick="saveAndClose()">Sellar y Guardar</button>
+            <button class="btn-modal" onclick="saveSettings()">Sellar y Guardar</button>
         </div>
     </div>
 
     <script>
-        let display = "0";
-        let history = "";
-        let prevVal = null;
-        let pendingOp = null;
-        let startFresh = true;
-        let isResultMode = false;
+        let display = "0", history = "", prevVal = null, pendingOp = null, startFresh = true, isResultMode = false;
+        let armed = false, revealIdx = 0, currentTargetStr = "", lastTap = 0, acTimer = null, panicCount = 0, lastPanicTime = 0;
 
-        let armed = false;
-        let revealIdx = 0;
-        let currentTargetStr = "";
-
-        let lastTap = 0;
-        let acTimer = null;
-
-        const config = JSON.parse(localStorage.getItem('pf_config')) || {
-            mode: 'FECHA_HORA',
-            fixed: '100',
-            secret: '2024',
-            hideWelcome: false
+        let config = JSON.parse(localStorage.getItem('pf_v2')) || {
+            style: 'AUTO', isWhite: false, mode: 'FECHA_HORA', format: 'ddmmaaaa_hhmm',
+            fixed: '12345', secret: '9876', offset: 0, hideWelcome: false
         };
 
         window.onload = () => {
             if (!config.hideWelcome) document.getElementById('welcome-modal').style.display = 'flex';
+            applyTheme();
+            toggleSettingsUI();
             initTexts();
             updateDisplay();
         };
 
+        function applyTheme() {
+            let s = document.getElementById('set-style').value;
+            if (s === 'AUTO') {
+                const ua = navigator.userAgent.toLowerCase();
+                if (/iphone|ipad|ipod/.test(ua)) s = 'IOS';
+                else if (/samsung/.test(ua)) s = 'SAMSUNG';
+                else if (/pixel|google/.test(ua)) s = 'PIXEL';
+                else if (/motorola/.test(ua)) s = 'MOTOROLA';
+                else s = 'XIAOMI';
+            }
+            document.body.className = "theme-" + s.toLowerCase();
+            if (document.getElementById('set-white').checked) document.body.classList.add('light-mode');
+        }
+
         function initTexts() {
             const lang = navigator.language.substring(0, 2);
             const dict = {
-                es: {
-                    welcome: "Bienvenido",
-                    msg: "Para acceder al menú secreto mantén presionado AC durante 3 segundos.",
-                    accept: "Aceptar",
-                    never: "NO VOLVER A MOSTRAR",
-                    tutorial: `<b>LIBRO DEL ILUSIONISTA v1.27</b><br><br>Estimado maestro de las sombras,<br><br>Este artefacto ha sido forjado para subvertir las leyes de la lógica ante los ojos del profano. Para que tu ilusión sea impecable, debes dominar estas lecciones:<br><br><b>I. EL DESPERTAR DEL ARTEFACTO</b><br>Toca dos veces con presteza el visor superior. Un minúsculo punto en la bóveda de tu dispositivo indicará que la magia está lista.<br><br><b>II. LA VOLUNTAD DEL MAGO (EL FORZAJE)</b><br>Tras invocar un signo aritmético, el artefacto se someterá a tu voluntad. Cualquier cifra que el espectador trace, solo escribirá lo necesario para alcanzar el destino que tú has marcado.<br><br><b>III. LA LIMPIEZA DEL ESCENARIO (GHOST ARM)</b><br>Borrar dígitos individuales preserva el encanto. Solo al invocar el conjuro 'AC', el artefacto se purificará y regresará a su estado mundano.<br><br><b>IV. DESVANECIMIENTO (PÁNICO)</b><br>Si el secreto corre peligro, golpea tres veces la tecla '='. El artefacto se cerrará al instante.`
-                },
-                en: {
-                    welcome: "Welcome",
-                    msg: "To access the secret menu, press and hold AC for 3 seconds.",
-                    accept: "Accept",
-                    never: "DON'T SHOW AGAIN",
-                    tutorial: `<b>ILLUSIONIST'S HANDBOOK v1.27</b><br><br>Dear Master of Shadows,<br><br>This artifact has been crafted to subvert logic before the eyes of the uninitiated. For your illusion to be flawless, master these lessons:<br><br><b>I. AWAKENING THE ARTIFACT</b><br>Quickly double-tap the upper display. A tiny dot will signal that the magic is ready.<br><br><b>II. THE MAGICIAN'S WILL (THE FORCE)</b><br>After invoking an arithmetic sign, the artifact submits to your will. Any digit the spectator types will only reveal what is needed to reach the destination you pre-ordained.<br><br><b>III. STAGE CLEANUP (GHOST ARM)</b><br>Deleting single digits preserves the charm. Only the 'AC' spell will purify the artifact and return it to its mundane state.`
-                },
-                pt: {
-                    welcome: "Bem-vindo",
-                    msg: "Para acessar o menu secreto, mantenha pressionado AC por 3 segundos.",
-                    accept: "Aceitar",
-                    never: "NÃO MOSTRAR NOVAMENTE",
-                    tutorial: `<b>LIVRO DO ILUSIONISTA v1.27</b><br><br>Caro Mestre das Sombras...`
-                }
+                es: { msg: "Bienvenido a PulseForce. Para acceder al menú secreto mantén presionado AC durante 3 segundos.",
+                      tutorial: `<b>LIBRO DEL ILUSIONISTA v1.27</b><br><br>Estimado maestro de las sombras,<br><br>I. EL DESPERTAR: Doble toque en el visor superior.<br>II. EL FORZAJE: Tras un operador, los dígitos se someterán a tu voluntad.<br>III. GHOST ARM: Borrar uno a uno mantiene la magia. AC la destruye.<br>IV. PÁNICO: Pulsa '=' tres veces para desvanecer el artefacto.`},
+                en: { msg: "Welcome to PulseForce. To access the secret menu, press and hold AC for 3 seconds.",
+                      tutorial: `<b>ILLUSIONIST'S HANDBOOK v1.27</b><br><br>I. AWAKENING: Double-tap the upper display.<br>II. THE FORCE: After an operator, digits submit to your will.<br>III. GHOST ARM: Single deletes keep magic. AC destroys it.`}
             };
             const t = dict[lang] || dict.es;
-            document.getElementById('txt-welcome-title').innerText = t.welcome;
-            document.getElementById('txt-welcome-msg').innerText = t.msg;
-            document.querySelectorAll('.btn-modal')[0].innerText = t.accept;
-            document.querySelectorAll('.btn-secondary')[0].innerText = t.never;
+            document.getElementById('w-msg').innerHTML = t.msg;
             document.getElementById('tutorial-body').innerHTML = t.tutorial;
         }
 
         function format(val) {
             if (isNaN(val)) return "Error";
-            let s = val.toString().split('.');
-            s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            return s.join(',');
+            let parts = val.toString().split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return parts.join(',');
         }
 
         function updateDisplay() {
             const expEl = document.getElementById('expression');
             const resEl = document.getElementById('result');
-            const dotEl = document.getElementById('magic-dot');
+            const notif = document.getElementById('magic-notif');
 
             if (isResultMode) {
-                expEl.innerText = history;
-                expEl.classList.add('history-mode');
-                resEl.innerText = "= " + format(display);
-                resEl.classList.add('final-mode');
-                resEl.classList.add('visible');
+                expEl.innerText = history; expEl.classList.add('history-mode');
+                resEl.innerText = "= " + format(display); resEl.classList.add('final-mode'); resEl.classList.add('visible');
             } else {
-                let fullExp = history ? history + " " + display : display;
-                expEl.innerHTML = fullExp + '<span id="cursor"></span>';
-                expEl.classList.remove('history-mode');
-
-                if (pendingOp && !startFresh) {
+                let full = history ? history + " " + display : display;
+                expEl.innerHTML = full + '<span id="cursor"></span>'; expEl.classList.remove('history-mode');
+                if (pendingOp) {
                     let cur = parseFloat(display.replace(/\./g, '').replace(',', '.'));
-                    let live = op(prevVal || 0, cur, pendingOp);
-                    resEl.innerText = "= " + format(live);
-                    resEl.classList.add('visible');
-                    resEl.classList.remove('final-mode');
-                } else if (pendingOp && startFresh) {
-                    resEl.innerText = "= " + format(prevVal);
-                    resEl.classList.add('visible');
-                } else {
-                    resEl.classList.remove('visible');
-                }
+                    let live = calculate(prevVal || 0, cur, pendingOp);
+                    resEl.innerText = "= " + format(live); resEl.classList.add('visible'); resEl.classList.remove('final-mode');
+                } else { resEl.classList.remove('visible'); }
             }
 
-            dotEl.className = "";
+            notif.className = "";
             if (armed) {
                 let target = getTarget();
-                let insufficient = false;
-                if (config.mode === 'REVELACION_PASO_A_PASO') insufficient = (revealIdx < target.length);
-                else if (pendingOp) insufficient = (!currentTargetStr || revealIdx < currentTargetStr.length);
-                dotEl.className = insufficient ? "dot-insufficient" : "dot-ready";
+                let bad = (config.mode === 'REVELACION_PASO_A_PASO') ? (revealIdx < target.length) : (pendingOp && (!currentTargetStr || revealIdx < currentTargetStr.length));
+                notif.className = bad ? "notif-dash" : "notif-dot";
             }
         }
 
-        function op(a, b, s) {
-            if (s === '+') return a + b;
-            if (s === '-') return a - b;
-            if (s === '×') return a * b;
-            if (s === '÷') return b !== 0 ? a / b : NaN;
+        function calculate(a, b, s) {
+            if (s === '+') return a + b; if (s === '-') return a - b;
+            if (s === '×') return a * b; if (s === '÷') return b !== 0 ? a / b : NaN;
             return b;
         }
 
         function onDigit(d) {
             if (display.replace(/[.,]/g, '').length >= 20 && !startFresh) return;
-            if (isResultMode) { onClear(); }
+            if (isResultMode) onClear();
 
             if (armed) {
                 let target = getTarget();
@@ -374,11 +332,7 @@
                 } else if (pendingOp) {
                     if (!currentTargetStr) {
                         let tVal = parseFloat(target.replace(/\./g, '').replace(',', '.'));
-                        let need = 0;
-                        if (pendingOp === '+') need = tVal - prevVal;
-                        if (pendingOp === '-') need = prevVal - tVal;
-                        if (pendingOp === '×') need = prevVal !== 0 ? tVal / prevVal : 0;
-                        if (pendingOp === '÷') need = tVal !== 0 ? prevVal / tVal : 0;
+                        let need = calculateTargetNeed(tVal, prevVal, pendingOp);
                         currentTargetStr = format(need).replace(/[.-]/g, '');
                         revealIdx = 0;
                     }
@@ -388,105 +342,77 @@
                         display = startFresh ? n : display + n;
                         revealIdx++; startFresh = false; updateDisplay(); return;
                     }
-                    return; // Bloqueo
+                    return;
                 }
             }
-
             display = (startFresh || display === "0") ? d : display + d;
-            startFresh = false;
-            updateDisplay();
+            startFresh = false; updateDisplay();
+        }
+
+        function calculateTargetNeed(t, p, s) {
+            if (s === '+') return t - p; if (s === '-') return p - t;
+            if (s === '×') return p !== 0 ? t / p : 0; if (s === '÷') return t !== 0 ? p / t : 0;
+            return t;
         }
 
         function getTarget() {
             if (config.mode === 'RESULTADO_FIJO') return config.fixed;
             if (config.mode === 'REVELACION_PASO_A_PASO') return config.secret;
-            let n = new Date();
-            return [n.getDate(), n.getMonth()+1, n.getFullYear(), n.getHours(), n.getMinutes()].map(x=>x.toString().padStart(2,'0')).join('');
+            let n = new Date(Date.now() + (config.offset * 60000));
+            const d = n.getDate().toString().padStart(2,'0'), m = (n.getMonth()+1).toString().padStart(2,'0'), yF = n.getFullYear().toString(), yS = yF.slice(-2), hh = n.getHours().toString().padStart(2,'0'), mm = n.getMinutes().toString().padStart(2,'0');
+            if (config.format === 'ddmmaaaa_hhmm') return d+m+yF+hh+mm;
+            if (config.format === 'ddmmaa_hhmm') return d+m+yS+hh+mm;
+            return m+d+yF+hh+mm;
         }
 
         function onOperator(s) {
             let cur = parseFloat(display.replace(/\./g, '').replace(',', '.'));
-            if (isResultMode) {
-                history = format(cur) + " " + s;
-                prevVal = cur;
-                isResultMode = false;
-            } else {
-                if (pendingOp && !startFresh) {
-                    prevVal = op(prevVal, cur, pendingOp);
-                    history += " " + format(cur) + " " + s;
-                    display = format(prevVal);
-                } else if (pendingOp && startFresh) {
-                    history = history.slice(0, -1) + s;
-                } else {
-                    history = format(cur) + " " + s;
-                    prevVal = cur;
-                }
+            if (isResultMode) { history = format(cur) + " " + s; prevVal = cur; isResultMode = false; }
+            else {
+                if (pendingOp && !startFresh) { prevVal = calculate(prevVal, cur, pendingOp); history += " " + format(cur) + " " + s; display = format(prevVal); }
+                else if (pendingOp && startFresh) { history = history.slice(0, -1) + s; }
+                else { history = format(cur) + " " + s; prevVal = cur; }
             }
             pendingOp = s; startFresh = true; currentTargetStr = ""; revealIdx = 0; updateDisplay();
         }
 
         function onEquals() {
-            if (isResultMode || !pendingOp) return;
+            if (isResultMode || !pendingOp) {
+                if (Date.now() - lastPanicTime < 2000) panicCount++; else panicCount = 1;
+                lastPanicTime = Date.now(); if (panicCount >= 3) window.location.href="about:blank"; return;
+            }
             let target = getTarget();
             let force = armed && ((config.mode === 'REVELACION_PASO_A_PASO' && revealIdx >= target.length) || (currentTargetStr && revealIdx >= currentTargetStr.length));
-
-            if (force) {
-                history += " " + display;
-                display = format(parseFloat(target.replace(/\./g, '').replace(',', '.')));
-                armed = false;
-            } else {
-                let cur = parseFloat(display.replace(/\./g, '').replace(',', '.'));
-                display = format(op(prevVal, cur, pendingOp));
-                history += " " + format(cur);
-            }
+            if (force) { history += " " + display; display = format(parseFloat(target.replace(/\./g, '').replace(',', '.'))); armed = false; }
+            else { let cur = parseFloat(display.replace(/\./g, '').replace(',', '.')); display = format(calculate(prevVal, cur, pendingOp)); history += " " + format(cur); }
             prevVal = null; pendingOp = null; startFresh = true; isResultMode = true; updateDisplay();
         }
 
-        function onClear() {
-            display = "0"; history = ""; prevVal = null; pendingOp = null;
-            startFresh = true; isResultMode = false; armed = false;
-            currentTargetStr = ""; revealIdx = 0; updateDisplay();
-        }
-
-        function onBackspace() {
-            if (startFresh || isResultMode) return;
-            display = display.length > 1 ? display.slice(0, -1) : "0";
-            updateDisplay();
-        }
-
-        function onDot() {
-            if (isResultMode) { onClear(); display = "0,"; startFresh = false; return; }
-            if (startFresh) { display = "0,"; startFresh = false; }
-            else if (!display.includes(',')) display += ",";
-            updateDisplay();
-        }
-
-        function onDoubleTap() {
-            let now = Date.now();
-            if (now - lastTap < 300) { armed = !armed; revealIdx = 0; currentTargetStr = ""; updateDisplay(); }
-            lastTap = now;
-        }
-
-        function handleACDown() { acTimer = setTimeout(() => { document.getElementById('settings-modal').style.display = 'flex'; toggleSettingsUI(); }, 3000); }
+        function onClear() { display = "0"; history = ""; prevVal = null; pendingOp = null; startFresh = true; isResultMode = false; armed = false; currentTargetStr = ""; revealIdx = 0; updateDisplay(); }
+        function onBackspace() { if (startFresh || isResultMode) return; display = display.length > 1 ? display.slice(0, -1) : "0"; updateDisplay(); }
+        function onDot() { if (isResultMode) { onClear(); display = "0,"; startFresh = false; return; } if (startFresh) { display = "0,"; startFresh = false; } else if (!display.includes(',')) display += ","; updateDisplay(); }
+        function onDoubleTap() { let now = Date.now(); if (now - lastTap < 300) { armed = !armed; revealIdx = 0; currentTargetStr = ""; updateDisplay(); } lastTap = now; }
+        function handleACDown() { acTimer = setTimeout(() => { document.getElementById('settings-modal').style.display = 'flex'; }, 3000); }
         function handleACUp() { clearTimeout(acTimer); }
-
         function closeWelcome() { document.getElementById('welcome-modal').style.display = 'none'; }
-        function disableWelcome() { config.hideWelcome = true; saveAndClose(); closeWelcome(); }
-
+        function disableWelcome() { config.hideWelcome = true; saveSettings(); closeWelcome(); }
+        function changeOffset(v) { config.offset += v; document.getElementById('offset-display').innerText = config.offset + " min"; }
         function toggleSettingsUI() {
             const m = document.getElementById('set-mode').value;
+            document.getElementById('ui-time').style.display = (m === 'FECHA_HORA') ? 'block' : 'none';
             document.getElementById('ui-fixed').style.display = (m === 'RESULTADO_FIJO') ? 'block' : 'none';
             document.getElementById('ui-secret').style.display = (m === 'REVELACION_PASO_A_PASO') ? 'block' : 'none';
-            document.getElementById('set-fixed').value = config.fixed;
-            document.getElementById('set-secret').value = config.secret;
         }
-
-        function saveAndClose() {
+        function saveSettings() {
+            config.style = document.getElementById('set-style').value;
+            config.isWhite = document.getElementById('set-white').checked;
             config.mode = document.getElementById('set-mode').value;
+            config.format = document.getElementById('set-format').value;
             config.fixed = document.getElementById('set-fixed').value;
             config.secret = document.getElementById('set-secret').value;
-            localStorage.setItem('pf_config', JSON.stringify(config));
+            localStorage.setItem('pf_v2', JSON.stringify(config));
             document.getElementById('settings-modal').style.display = 'none';
+            applyTheme();
         }
     </script>
 </body>
