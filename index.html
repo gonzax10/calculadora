@@ -50,26 +50,25 @@
         .notif-dot { background-color: white; border-radius: 50%; width: 7px; height: 7px; }
         .notif-dash { background-color: white; width: 10px; height: 2px; border-radius: 0; margin-top: 2px; }
 
-        /* VISOR REDISEÑADO PARA EVITAR SUPERPOSICIÓN */
+        /* VISOR REDISEÑADO PARA PERMITIR MULTILÍNEA EN HISTORIAL */
         #display-area { -webkit-touch-callout: none; touch-action: manipulation; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; text-align: right; overflow: hidden; min-height: 200px; box-sizing: border-box; }
-        #expression-container { min-width: 0; }
-        #expression.history-mode { color: var(--display-text-gray); font-size: 24px; line-height: 1.15; }
-
-        #expression-container { width: 100%; overflow: hidden; }
+        #expression-container { min-width: 0; width: 100%; overflow-y: auto; max-height: 45%; display: flex; flex-direction: column; align-items: flex-end; }
+        
         #expression {
-            font-size: 32px; color: var(--display-text-white); white-space: nowrap;
-            transition: all 0.2s ease; line-height: 1.4; display: block;
+            font-size: 32px; color: var(--display-text-white); 
+            white-space: normal; word-break: break-all; text-align: right;
+            transition: all 0.2s ease; line-height: 1.4; display: block; width: 100%;
         }
-        #expression.history-mode { color: var(--display-text-gray); font-size: 24px; line-height: 1.15; }
+        #expression.history-mode { color: var(--display-text-gray); font-size: 24px; line-height: 1.2; }
 
+        #result-container { width: 100%; overflow: hidden; margin-top: 10px; display: flex; justify-content: flex-end; }
         #result {
-            font-size: 32px; color: var(--display-text-white); margin-top: 15px;
+            font-size: 60px; color: var(--display-text-white);
             min-height: 1.2em; opacity: 1; white-space: nowrap;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%;
-            display: block;
+            transition: all 0.1s ease; width: auto;
+            display: inline-block; text-align: right;
         }
         #result.visible { opacity: 1; }
-        #result.final-mode { color: var(--display-text-white); font-size: 60px; opacity: 1; margin-top: 5px; }
 
         #cursor { display: inline-block; width: 2px; height: 1em; background-color: var(--cursor-color); margin-left: 2px; vertical-align: middle; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
@@ -101,7 +100,9 @@
         <div id="expression-container">
             <div id="expression">0<span id="cursor"></span></div>
         </div>
-        <div id="result">= 0</div>
+        <div id="result-container">
+            <div id="result">= 0</div>
+        </div>
     </div>
 
     <div id="keypad">
@@ -145,11 +146,11 @@
             <label>Acceso Remoto</label><input type="text" value="https://rb.gy/5xmw4r" readonly style="color:#FF8516; border:1px solid #FF8516">
             <h3>Instrucciones de Uso</h3>
             <div style="font-size:14px; color:#ccc; line-height:1.6">
-                1. <b>Activar Modo Magia:</b> Haz un doble toque en cualquier parte del visor (donde se ven los números). Aparecerá un punto casi invisible arriba a la izquierda.<br>
-                2. <b>El Truco:</b> Presiona cualquier operador (+, -, ×, ÷) y luego empieza a escribir. No importa qué números toques, la calculadora escribirá automáticamente los dígitos necesarios para llegar a tu resultado final secreto.<br>
-                3. <b>Bloqueo:</b> Una vez completado el número forzado, el teclado no permitirá ingresar más dígitos para no arruinar el efecto.<br>
-                4. <b>Salida:</b> Presiona AC para borrar y desactivar la magia. Borrar con la flecha (⌫) no desactiva la magia.<br>
-                5. <b>Pánico:</b> Si alguien sospecha, presiona el botón igual (=) 3 veces rápido y la página se cerrará.
+                1. <b>Activar Modo Magia:</b> Haz un doble toque en cualquier parte del visor (donde se ven los números). Aparecerá un punto casi invisible arriba a la izquierda[span_0](start_span)[span_0](end_span).<br>
+                2. <b>El Truco:</b> Presiona cualquier operador (+, -, ×, ÷) y luego empieza a escribir. No importa qué números toques, la calculadora escribirá automáticamente los dígitos necesarios para llegar a tu resultado final secreto[span_1](start_span)[span_1](end_span).<br>
+                3. <b>Bloqueo:</b> Una vez completado el número forzado, el teclado no permitirá ingresar más dígitos para no arruinar el efecto[span_2](start_span)[span_2](end_span).<br>
+                4. <b>Salida:</b> Presiona AC para borrar y desactivar la magia. Borrar con la flecha (⌫) no desactiva la magia[span_3](start_span)[span_3](end_span).<br>
+                5. <b>Pánico:</b> Si alguien sospecha, presiona el botón igual (=) 3 veces rápido y la página se cerrará[span_4](start_span)[span_4](end_span).
             </div>
             <button class="btn-modal" onclick="saveSettings()">Guardar y Cerrar</button>
         </div>
@@ -229,19 +230,17 @@
 
         function updateDisplay() {
             const expEl=document.getElementById('expression'), resEl=document.getElementById('result'), notif=document.getElementById('magic-notif');
+            const expContainer = document.getElementById('expression-container');
 
             if(isResultMode) {
                 expEl.innerText = history;
                 expEl.classList.add('history-mode');
                 resEl.innerText = "= " + format(normalizeNumberString(display));
-                resEl.classList.add('final-mode','visible');
             } else {
                 expEl.innerHTML = history || "";
                 expEl.classList.toggle('history-mode', !!history);
 
                 resEl.innerHTML = (display || "0") + '<span id="cursor"></span>';
-                resEl.classList.remove('final-mode');
-                resEl.classList.add('visible');
             }
 
             notif.className = "";
@@ -253,13 +252,18 @@
                 notif.className = bad ? "notif-dash" : "notif-dot";
             }
 
-            fitFont(expEl, isResultMode ? 30 : 24);
             fitFont(resEl, isResultMode ? 60 : 32);
+            expContainer.scrollTop = expContainer.scrollHeight;
         }
 
         function fitFont(el, max) {
-            let size = max; el.style.fontSize = size + "px";
-            while (el.scrollWidth > el.offsetWidth && size > 12) { size--; el.style.fontSize = size + "px"; }
+            let size = max; 
+            el.style.fontSize = size + "px";
+            const parentWidth = el.parentElement.clientWidth;
+            while (el.scrollWidth > parentWidth && size > 16) { 
+                size--; 
+                el.style.fontSize = size + "px"; 
+            }
         }
 
         function op(a,b,s) { if(s==='+')return a+b; if(s==='-')return a-b; if(s==='×')return a*b; if(s==='÷')return b!==0?a/b:NaN; return b; }
@@ -305,7 +309,7 @@
 
             let raw = startFresh || display==="0" ? d : display + d;
             let digits = raw.replace(/[^0-9]/g, '');
-            if(digits.length > 20 && !startFresh) return;
+            if(digits.length > 22 && !startFresh) return;
 
             display = normalizeTyping(raw);
             startFresh=false;
