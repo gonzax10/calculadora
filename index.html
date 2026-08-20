@@ -63,8 +63,8 @@
         #expression.history-mode { color: var(--display-text-gray); font-size: 24px; line-height: 1.15; }
 
         #result {
-            font-size: 32px; color: var(--display-text-gray); margin-top: 15px;
-            min-height: 1.2em; opacity: 0; white-space: nowrap;
+            font-size: 32px; color: var(--display-text-white); margin-top: 15px;
+            min-height: 1.2em; opacity: 1; white-space: nowrap;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%;
             display: block;
         }
@@ -214,7 +214,7 @@
             if (str === null || str === undefined) return "0";
             str = String(str);
             if (str === "") return "0";
-            return str.replace(/\\./g, '').replace(',', '.');
+            return str.replace(/\./g, '').replace(',', '.');
         }
 
         function addGroupingToDisplay(str) {
@@ -222,8 +222,8 @@
             const negative = str.startsWith('-');
             if (negative) str = str.slice(1);
             const parts = str.split(',');
-            const integer = parts[0].replace(/\\./g, '');
-            const grouped = integer.replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.');
+            const integer = parts[0].replace(/\./g, '');
+            const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             return (negative ? '-' : '') + grouped + (parts.length > 1 ? ',' + parts[1] : '');
         }
 
@@ -236,12 +236,12 @@
                 resEl.innerText = "= " + format(normalizeNumberString(display));
                 resEl.classList.add('final-mode','visible');
             } else {
-                expEl.innerHTML = (history ? history + " " + display : display) + '<span id="cursor"></span>';
-                expEl.classList.remove('history-mode');
+                expEl.innerHTML = history || "";
+                expEl.classList.toggle('history-mode', !!history);
 
-                // Never show the live calculation beside the currently entered digit.
-                resEl.classList.remove('visible', 'final-mode');
-                resEl.innerText = "";
+                resEl.innerHTML = (display || "0") + '<span id="cursor"></span>';
+                resEl.classList.remove('final-mode');
+                resEl.classList.add('visible');
             }
 
             notif.className = "";
@@ -253,8 +253,8 @@
                 notif.className = bad ? "notif-dash" : "notif-dot";
             }
 
-            fitFont(expEl, isResultMode ? 30 : 32);
-            if(isResultMode) fitFont(resEl, 60);
+            fitFont(expEl, isResultMode ? 30 : 24);
+            fitFont(resEl, isResultMode ? 60 : 32);
         }
 
         function fitFont(el, max) {
@@ -287,7 +287,7 @@
                                    (pendingOp==='×') ? (pVal!==0 ? tVal/pVal : 0) :
                                    (tVal!==0 ? pVal/tVal : 0);
 
-                        targetStr = String(Math.abs(need)).replace(/\\./g, '').replace(',', '');
+                        targetStr = String(Math.abs(Math.round(need)));
                         revealIdx=0;
                     }
 
@@ -315,8 +315,8 @@
         function normalizeTyping(str) {
             if (!str) return "0";
             const parts = String(str).split(',');
-            const integer = parts[0].replace(/\\./g, '');
-            const grouped = integer.replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.');
+            const integer = parts[0].replace(/\./g, '');
+            const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
             return grouped + (parts.length > 1 ? ',' + parts[1] : '');
         }
 
@@ -382,7 +382,7 @@
 
         function onBackspace() {
             if(startFresh||isResultMode) return;
-            let raw = display.replace(/\\./g, '');
+            let raw = display.replace(/\./g, '');
             raw = raw.length > 1 ? raw.slice(0,-1) : "0";
             display = addGroupingToDisplay(raw);
             updateDisplay();
