@@ -20,7 +20,7 @@
             --key-spacing: 10px;
         }
 
-        /* TEMAS ADAPTATIVOS */
+        /* TEMAS */
         body.theme-samsung { --bg-color: #010101; --btn-digit-bg: #171718; --btn-orange-text: #318608; --btn-equal-bg: #318608; --key-shape: 50%; --key-spacing: 14px; }
         body.theme-pixel { --bg-color: #1b1b1f; --btn-digit-bg: #2d2f31; --btn-orange-text: #a8c7fa; --btn-equal-bg: #a8c7fa; --btn-text-color: #e3e2e6; --key-shape: 28px; }
         body.theme-motorola { --bg-color: #1f1f1f; --btn-digit-bg: #272a2e; --btn-orange-text: #5ab3f1; --btn-equal-bg: #d3e2fd; --key-shape: 50%; }
@@ -39,23 +39,24 @@
             -webkit-tap-highlight-color: transparent; transition: background-color 0.3s;
         }
 
+        /* Notificación Invisible */
         #magic-notif { position: absolute; top: 10px; left: 10px; width: 6px; height: 6px; z-index: 1000; opacity: 0.3; pointer-events: none; }
         .notif-dot { background-color: white; border-radius: 50%; }
         .notif-dash { background-color: white; width: 10px; height: 2px; border-radius: 0; margin-top: 2px; }
 
-        /* VISOR XIAOMI FLOW */
-        #display-area { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; text-align: right; overflow-x: hidden; }
+        /* Visor Xiaomi Flow */
+        #display-area { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; text-align: right; overflow: hidden; }
 
         #expression {
             font-size: 32px; color: var(--display-text-white); white-space: nowrap;
-            transition: all 0.3s ease; line-height: 1.2;
+            transition: all 0.2s ease; line-height: 1.2; width: 100%;
         }
         #expression.history-mode { color: var(--display-text-gray); font-size: 24px; }
 
         #result {
             font-size: 32px; color: var(--display-text-gray); margin-top: 10px;
             min-height: 1.2em; opacity: 0; white-space: nowrap;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%;
         }
         #result.visible { opacity: 1; }
         #result.final-mode { color: var(--display-text-white); font-size: 60px; opacity: 1; }
@@ -63,22 +64,42 @@
         #cursor { display: inline-block; width: 2px; height: 1em; background-color: var(--cursor-color); margin-left: 2px; vertical-align: middle; animation: blink 1s step-end infinite; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* TECLADO */
+        /* Teclado */
         #keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--key-spacing); padding: 15px; padding-bottom: max(30px, env(safe-area-inset-bottom)); }
-        .btn { height: 75px; border-radius: var(--key-shape); border: none; background-color: var(--btn-digit-bg); color: var(--btn-text-color); font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.1s; }
+
+        .btn {
+            height: 75px; border-radius: var(--key-shape); border: none;
+            background-color: var(--btn-digit-bg); color: var(--btn-text-color);
+            font-size: 30px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: filter 0.1s;
+        }
         .btn:active { filter: brightness(1.5); }
         .btn-func { color: var(--btn-orange-text); }
         .btn-equal { background-color: var(--btn-equal-bg); color: white; }
+
         .icon-svg { width: 32px; height: 32px; fill: currentColor; }
 
-        /* MODALES */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; flex-direction: column; padding: 25px; box-sizing: border-box; overflow-y: auto; }
+        /* Modales */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 2000; flex-direction: column; padding: 25px;
+            box-sizing: border-box; overflow-y: auto;
+        }
         .modal-content { max-width: 500px; margin: auto; width: 100%; }
         h2 { color: var(--btn-orange-text); margin-top: 0; }
-        .btn-modal { width: 100%; height: 55px; border-radius: 18px; border: none; margin-top: 20px; font-size: 18px; font-weight: bold; background: var(--btn-equal-bg); color: white; }
-        .btn-secondary { background: #333; margin-top: 10px; }
-        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: #111; color: white; font-size: 16px; box-sizing: border-box; }
+        .btn-modal {
+            width: 100%; height: 55px; border-radius: 18px; border: none;
+            margin-top: 20px; font-size: 18px; font-weight: bold;
+            background: var(--btn-equal-bg); color: white;
+        }
+        input, select {
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
+            border: 1px solid #333; background: #111; color: white;
+            font-size: 16px; box-sizing: border-box;
+        }
         label { color: #888; font-size: 12px; text-transform: uppercase; margin-top: 10px; display: block; }
+        .stepper { display: flex; align-items: center; justify-content: space-between; background: #111; border-radius: 12px; padding: 5px; }
+        .stepper button { width: 60px; height: 45px; background: #333; border: none; color: white; border-radius: 8px; font-size: 20px; }
     </style>
 </head>
 <body class="theme-xiaomi">
@@ -91,24 +112,28 @@
     </div>
 
     <div id="keypad">
-        <button class="btn btn-func" onmousedown="acStart()" onmouseup="acEnd()" ontouchstart="acStart()" ontouchend="acEnd()">AC</button>
+        <button class="btn btn-func" onclick="onClear()" onmousedown="acStart()" onmouseup="acEnd()" ontouchstart="acStart()" ontouchend="acEnd()">AC</button>
         <button class="btn btn-func" onclick="onBackspace()">
             <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22,3H7c-0.69,0-1.23,0.35-1.59,0.88L0,12l5.41,8.11C5.77,20.64,6.31,21,7,21h15c1.1,0,2-0.9,2-2V5C24,3.9,23.1,3,22,3z M18.3,16.3l-1.4,1.4L13,13.8l-3.9,3.9l-1.4-1.4l3.9-3.9l-3.9-3.9l1.4-1.4l3.9,3.9l3.9-3.9l1.4,1.4L14.4,12.5L18.3,16.3z"/></svg>
         </button>
         <button class="btn btn-func" onclick="onOperator('%')">%</button>
         <button class="btn btn-func" onclick="onOperator('÷')">÷</button>
+
         <button class="btn" onclick="onDigit('7')">7</button>
         <button class="btn" onclick="onDigit('8')">8</button>
         <button class="btn" onclick="onDigit('9')">9</button>
         <button class="btn btn-func" onclick="onOperator('×')">×</button>
+
         <button class="btn" onclick="onDigit('4')">4</button>
         <button class="btn" onclick="onDigit('5')">5</button>
         <button class="btn" onclick="onDigit('6')">6</button>
         <button class="btn btn-func" onclick="onOperator('-')">-</button>
+
         <button class="btn" onclick="onDigit('1')">1</button>
         <button class="btn" onclick="onDigit('2')">2</button>
         <button class="btn" onclick="onDigit('3')">3</button>
         <button class="btn btn-func" onclick="onOperator('+')">+</button>
+
         <button class="btn">
             <svg class="icon-svg" viewBox="0 0 24 24"><path d="M7 10h4v4h-4zM13 10h4v4h-4z" opacity=".3"/><path d="M19 8c-0.3-1.2-1.1-2.3-2.2-3l0.8-1.5L14 5l3.1 1.5l0.8-1.5c0.7 0.4 1.2 1.1 1.6 1.8 0.4 1.1 0.3 2.3-0.3 3.3l1.3 1.3C21.7 11 21.8 9.4 19 8z"/><path d="M5 16c0.3 1.2 1.1 2.3 2.2 3l-0.8 1.5L10 19l-3.1-1.5-0.8 1.5c-0.7-0.4-1.2-1.1-1.6-1.8-0.4-1.1-0.3-2.3 0.3-3.3l-1.3-1.3C2.3 13 2.2 14.6 5 16z"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="11" y="11" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
         </button>
@@ -117,166 +142,301 @@
         <button class="btn btn-equal" onclick="onEquals()">=</button>
     </div>
 
-    <div id="welcome-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="w-title">Bienvenido</h2>
-            <p id="w-msg"></p>
-            <button class="btn-modal" onclick="closeWelcome()">Aceptar</button>
-            <button class="btn-modal btn-secondary" onclick="disableWelcome()">NO VOLVER A MOSTRAR</button>
-        </div>
-    </div>
-
+    <!-- Grimorio -->
     <div id="settings-modal" class="modal">
         <div class="modal-content">
-            <h2>Configuración</h2>
-            <label>Estilo</label>
-            <select id="set-style" onchange="applyTheme()"><option value="AUTO">Automático</option><option value="XIAOMI">Xiaomi</option><option value="IOS">iOS</option><option value="SAMSUNG">Samsung</option><option value="PIXEL">Pixel</option></select>
-            <label>Modo Claro</label><input type="checkbox" id="set-white" onchange="applyTheme()">
-            <label>Modo Magia</label>
-            <select id="set-mode" onchange="toggleUI()"><option value="FECHA_HORA">Fecha / Hora</option><option value="RESULTADO_FIJO">Resultado Fijo</option><option value="REVELACION_PASO_A_PASO">Revelación Paso a Paso</option></select>
-            <div id="ui-time"><label>Ajuste Minutos</label><div class="stepper"><button onclick="chOff(-1)">-1</button><span id="off-disp">0 min</span><button onclick="chOff(1)">+1</button></div></div>
-            <div id="ui-fixed" style="display:none"><label>Número</label><input type="number" id="set-fixed"></div>
-            <div id="ui-secret" style="display:none"><label>Secreto</label><input type="text" id="set-secret"></div>
-            <label>Acceso Remoto</label><input type="text" value="https://rb.gy/5xmw4r" readonly style="color:#FF8516">
-            <h3>Instrucciones</h3>
-            <p id="tutorial-body"></p>
-            <button class="btn-modal" onclick="saveSettings()">Guardar</button>
+            <h2>Configuración Secreta</h2>
+
+            <label>Estilo Visual</label>
+            <select id="set-style" onchange="applyTheme()">
+                <option value="AUTO">Automático</option>
+                <option value="XIAOMI">Xiaomi</option>
+                <option value="IOS">iOS</option>
+                <option value="SAMSUNG">Samsung</option>
+                <option value="PIXEL">Pixel</option>
+            </select>
+
+            <label>Modo Claro</label>
+            <input type="checkbox" id="set-white" style="width: 25px; height: 25px;" onchange="applyTheme()">
+
+            <label>Efecto Mágico</label>
+            <select id="set-mode" onchange="toggleUI()">
+                <option value="FECHA_HORA">Fecha / Hora</option>
+                <option value="RESULTADO_FIJO">Resultado Fijo</option>
+                <option value="REVELACION_PASO_A_PASO">Revelación Paso a Paso</option>
+            </select>
+
+            <div id="ui-time">
+                <label>Ajuste de Minutos</label>
+                <div class="stepper">
+                    <button onclick="chOff(-1)">-1</button>
+                    <span id="off-disp">0 min</span>
+                    <button onclick="chOff(1)">+1</button>
+                    <button onclick="chOff(5)">+5</button>
+                </div>
+            </div>
+
+            <div id="ui-fixed" style="display:none">
+                <label>Número a Forzar</label>
+                <input type="number" id="set-fixed">
+            </div>
+
+            <div id="ui-secret" style="display:none">
+                <label>Número Secreto</label>
+                <input type="text" id="set-secret">
+            </div>
+
+            <label>Acceso Remoto</label>
+            <p style="font-size: 11px;">Si deseas acceder desde otro dispositivo puedes utilizar este enlace:</p>
+            <input type="text" value="https://rb.gy/5xmw4r" readonly style="color: #FF8516; border: 1px solid #FF8516">
+
+            <h3 style="border-bottom: 2px solid #FF8516; padding-bottom: 5px;">Instrucciones de Uso</h3>
+            <div id="tutorial-body" style="font-size: 14px; color: #ccc; line-height: 1.5;">
+                1. Activa el modo magia con un <b>DOBLE TOQUE</b> en cualquier parte del visor superior.<br>
+                2. Un minúsculo punto en la esquina superior izquierda indica que la calculadora está lista para el efecto.<br>
+                3. Al escribir cualquier número después de un operador (+, -, ×, ÷), la calculadora escribirá automáticamente los dígitos necesarios para llegar exactamente al resultado final configurado.<br>
+                4. Si pulsas igual (=) antes de completar el número, realizará una cuenta real para no levantar sospechas.<br>
+                5. El botón <b>AC</b> limpia la pantalla y desactiva el modo magia automáticamente.<br>
+                6. Borrar dígitos uno a uno (⌫) <b>mantiene</b> el modo magia activo.<br>
+                7. Pulsa la tecla igual (=) 3 veces rápidamente para cerrar la aplicación en caso de emergencia.
+            </div>
+
+            <button class="btn-modal" onclick="saveSettings()">Guardar y Cerrar</button>
         </div>
     </div>
 
     <script>
         let display = "0", history = "", prevVal = null, pendingOp = null, startFresh = true, isResultMode = false;
         let armed = false, revealIdx = 0, targetStr = "", lastTap = 0, acTimer = null, panicCount = 0, lastPanic = 0;
-        let config = JSON.parse(localStorage.getItem('pf_v3')) || { style:'AUTO', isWhite:false, mode:'FECHA_HORA', fixed:'12345', secret:'9876', offset:0, hideWelcome:false };
+
+        let config = JSON.parse(localStorage.getItem('pf_v4')) || {
+            style: 'AUTO', isWhite: false, mode: 'FECHA_HORA', fixed: '12345', secret: '9876', offset: 0
+        };
 
         window.onload = () => {
-            if(!config.hideWelcome) document.getElementById('welcome-modal').style.display='flex';
-            applyTheme(); toggleUI(); initTexts(); updateDisplay();
+            applyTheme();
+            toggleUI();
+            updateDisplay();
         };
 
         function applyTheme() {
             let s = document.getElementById('set-style').value;
-            if(s==='AUTO'){ const ua=navigator.userAgent.toLowerCase(); s=/iphone|ipad|ipod/.test(ua)?'IOS':/samsung/.test(ua)?'SAMSUNG':/pixel|google/.test(ua)?'PIXEL':'XIAOMI'; }
-            document.body.className = "theme-"+s.toLowerCase();
-            if(document.getElementById('set-white').checked) document.body.classList.add('light-mode');
-        }
-
-        function initTexts() {
-            const lang = navigator.language.substring(0,2);
-            const dict = {
-                es: { welcome:"Bienvenido", msg:"Para acceder al menú secreto mantén presionado AC durante 3 segundos.", tutorial:"1. Activa el modo magia con un DOBLE TOQUE en el visor superior.<br>2. El punto en la esquina indica que está listo.<br>3. Al escribir cualquier número después de un operador (+, -, etc), la calculadora escribirá automáticamente los dígitos necesarios para llegar al resultado final configurado.<br>4. AC limpia y desactiva la magia. Borrar dígitos mantiene la magia.<br>5. Pulsa '=' 3 veces rápido para cerrar." },
-                en: { welcome:"Welcome", msg:"To access the secret menu, press and hold AC for 3 seconds.", tutorial:"1. DOUBLE TAP the display to arm magic mode.<br>2. The corner dot signals readiness.<br>3. After an operator, typing any digit will automatically input the figures needed for the forced result.<br>4. AC clears and disarms. Delete keeps magic active.<br>5. Tap '=' 3 times quickly to exit." }
-            };
-            const t = dict[lang]||dict.es;
-            document.getElementById('w-title').innerText = t.welcome;
-            document.getElementById('w-msg').innerHTML = t.msg;
-            document.getElementById('tutorial-body').innerHTML = t.tutorial;
+            if (s === 'AUTO') {
+                const ua = navigator.userAgent.toLowerCase();
+                if (/iphone|ipad|ipod/.test(ua)) s = 'IOS';
+                else if (/samsung/.test(ua)) s = 'SAMSUNG';
+                else if (/pixel|google/.test(ua)) s = 'PIXEL';
+                else s = 'XIAOMI';
+            }
+            document.body.className = "theme-" + s.toLowerCase();
+            if (document.getElementById('set-white').checked) document.body.classList.add('light-mode');
         }
 
         function format(val) {
-            if(isNaN(val)) return "Error";
-            let p = val.toString().split('.');
-            p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-            return p.join(',');
+            if (isNaN(val) || val === Infinity) return "Error";
+            let s = val.toString().split('.');
+            s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return s.join(',');
         }
 
         function updateDisplay() {
-            const expEl=document.getElementById('expression'), resEl=document.getElementById('result'), notif=document.getElementById('magic-notif');
-            if(isResultMode) {
-                expEl.innerText = history; expEl.classList.add('history-mode');
-                resEl.innerText = "= " + format(display); resEl.classList.add('final-mode','visible');
+            const expEl = document.getElementById('expression');
+            const resEl = document.getElementById('result');
+            const notif = document.getElementById('magic-notif');
+
+            if (isResultMode) {
+                expEl.innerText = history;
+                expEl.classList.add('history-mode');
+                resEl.innerText = "= " + format(display);
+                resEl.classList.add('final-mode', 'visible');
             } else {
-                expEl.innerHTML = (history?history+" "+display:display) + '<span id="cursor"></span>';
+                let full = history ? history + " " + display : display;
+                expEl.innerHTML = full + '<span id="cursor"></span>';
                 expEl.classList.remove('history-mode');
-                if(pendingOp) {
-                    let cur = parseFloat(display.replace(/\./g,'').replace(',','.'));
-                    let live = op(prevVal||0, cur, pendingOp);
-                    resEl.innerText = "= "+format(startFresh?prevVal:live); resEl.classList.add('visible'); resEl.classList.remove('final-mode');
-                } else { resEl.classList.remove('visible'); }
-            }
-            notif.className = "";
-            if(armed) {
-                let t = getTarget();
-                let bad = (config.mode==='REVELACION_PASO_A_PASO')?(revealIdx<t.length):(pendingOp && (!targetStr||revealIdx<targetStr.length));
-                notif.className = bad ? "notif-dash" : "notif-dot";
-            }
-            // Auto size adjustment
-            let len = expEl.innerText.length;
-            expEl.style.fontSize = len > 22 ? "18px" : len > 14 ? "24px" : "32px";
-        }
 
-        function op(a,b,s) { if(s==='+')return a+b; if(s==='-')return a-b; if(s==='×')return a*b; if(s==='÷')return b!==0?a/b:NaN; return b; }
-
-        function onDigit(d) {
-            if(display.replace(/[.,]/g,'').length >= 20 && !startFresh) return;
-            if(isResultMode) onClear();
-            if(armed) {
-                let t = getTarget();
-                if(config.mode==='REVELACION_PASO_A_PASO') {
-                    if(revealIdx < t.length) { display=(revealIdx===0)?t[revealIdx]:display+t[revealIdx]; revealIdx++; startFresh=false; updateDisplay(); return; }
-                } else if(pendingOp) {
-                    if(!targetStr) {
-                        let tVal = parseFloat(t.replace(/\./g,'').replace(',','.'));
-                        let need = (pendingOp==='+')?tVal-prevVal:(pendingOp==='-')?prevVal-tVal:(pendingOp==='×')?(prevVal!==0?tVal/prevVal:0):(tVal!==0?prevVal/tVal:0);
-                        targetStr = format(need).replace(/[.-]/g,''); revealIdx=0;
-                    }
-                    if(revealIdx < targetStr.length) {
-                        let n = targetStr[revealIdx];
-                        if(n===',' && display.includes(',')) { revealIdx++; onDigit(d); return; }
-                        display = startFresh?n:display+n; revealIdx++; startFresh=false; updateDisplay(); return;
-                    }
-                    return;
+                if (pendingOp) {
+                    let cur = parseFloat(display.replace(/\./g, '').replace(',', '.'));
+                    let live = calculate(prevVal || 0, cur, pendingOp);
+                    resEl.innerText = "= " + format(startFresh ? (prevVal || 0) : live);
+                    resEl.classList.add('visible');
+                    resEl.classList.remove('final-mode');
+                } else {
+                    resEl.classList.remove('visible');
                 }
             }
-            display = (startFresh||display==="0")?d:display+d; startFresh=false; updateDisplay();
+
+            notif.className = "";
+            if (armed) {
+                let t = getTarget();
+                let bad = (config.mode === 'REVELACION_PASO_A_PASO') ?
+                          (revealIdx < t.toString().length) :
+                          (pendingOp && (!targetStr || revealIdx < targetStr.length));
+                notif.className = bad ? "notif-dash" : "notif-dot";
+            }
+
+            // Adaptative font size to keep numbers in one line
+            let fullText = expEl.innerText;
+            let len = fullText.length;
+            if (isResultMode) {
+                expEl.style.fontSize = "24px";
+            } else {
+                expEl.style.fontSize = len > 20 ? "18px" : len > 14 ? "24px" : "32px";
+            }
+        }
+
+        function calculate(a, b, s) {
+            if (s === '+') return a + b;
+            if (s === '-') return a - b;
+            if (s === '×') return a * b;
+            if (s === '÷') return b !== 0 ? a / b : NaN;
+            return b;
+        }
+
+        function onDigit(d) {
+            if (display.replace(/[.,]/g, '').length >= 20 && !startFresh) return;
+            if (isResultMode) onClear();
+
+            if (armed) {
+                let t = getTarget();
+                if (config.mode === 'REVELACION_PASO_A_PASO') {
+                    if (revealIdx < t.length) {
+                        display = (revealIdx === 0) ? t[revealIdx] : display + t[revealIdx];
+                        revealIdx++; startFresh = false; updateDisplay(); return;
+                    }
+                } else if (pendingOp) {
+                    if (!targetStr) {
+                        let tVal = parseFloat(t.replace(/\./g, '').replace(',', '.'));
+                        let need = calculateTargetNeed(tVal, prevVal, pendingOp);
+                        targetStr = format(Math.abs(need)).replace(/[.-]/g, '');
+                        revealIdx = 0;
+                    }
+                    if (revealIdx < targetStr.length) {
+                        let n = targetStr[revealIdx];
+                        if (n === ',' && display.includes(',')) { revealIdx++; onDigit(d); return; }
+                        display = startFresh ? n : display + n;
+                        revealIdx++; startFresh = false; updateDisplay(); return;
+                    }
+                    return; // Bloqueo
+                }
+            }
+            display = (startFresh || display === "0") ? d : display + d;
+            startFresh = false;
+            updateDisplay();
+        }
+
+        function calculateTargetNeed(t, p, s) {
+            if (s === '+') return t - p;
+            if (s === '-') return p - t;
+            if (s === '×') return p !== 0 ? t / p : 0;
+            if (s === '÷') return t !== 0 ? p / t : 0;
+            return t;
         }
 
         function getTarget() {
-            if(config.mode==='RESULTADO_FIJO') return config.fixed;
-            if(config.mode==='REVELACION_PASO_A_PASO') return config.secret;
-            let n = new Date(Date.now() + (config.offset*60000));
-            return [n.getDate(), n.getMonth()+1, n.getFullYear(), n.getHours(), n.getMinutes()].map(x=>x.toString().padStart(2,'0')).join('');
+            if (config.mode === 'RESULTADO_FIJO') return config.fixed;
+            if (config.mode === 'REVELACION_PASO_A_PASO') return config.secret;
+            let n = new Date(Date.now() + (config.offset * 60000));
+            return [n.getDate(), n.getMonth()+1, n.getFullYear(), n.getHours(), n.getMinutes()]
+                   .map(x => x.toString().padStart(2, '0')).join('');
         }
 
         function onOperator(s) {
-            let cur = parseFloat(display.replace(/\./g,'').replace(',','.'));
-            if(isResultMode) { history=format(cur)+" "+s; prevVal=cur; isResultMode=false; }
-            else {
-                if(pendingOp && !startFresh) { prevVal=op(prevVal,cur,pendingOp); history+=" "+format(cur)+" "+s; display=format(prevVal); }
-                else if(pendingOp && startFresh) { history=history.slice(0,-1)+s; }
-                else { history=format(cur)+" "+s; prevVal=cur; }
+            let raw = display.replace(/\./g, '').replace(',', '.');
+            let cur = parseFloat(raw) || 0;
+            if (isResultMode) {
+                history = format(cur) + " " + s;
+                prevVal = cur;
+                isResultMode = false;
+            } else {
+                if (pendingOp && !startFresh) {
+                    prevVal = calculate(prevVal, cur, pendingOp);
+                    history += " " + format(cur) + " " + s;
+                    display = format(prevVal);
+                } else if (pendingOp && startFresh) {
+                    history = history.slice(0, -1) + s;
+                } else {
+                    history = format(cur) + " " + s;
+                    prevVal = cur;
+                }
             }
-            pendingOp=s; startFresh=true; targetStr=""; revealIdx=0; updateDisplay();
+            pendingOp = s; startFresh = true; targetStr = ""; revealIdx = 0; updateDisplay();
         }
 
         function onEquals() {
-            if(isResultMode||!pendingOp) { if(Date.now()-lastPanic<2000) panicCount++; else panicCount=1; lastPanic=Date.now(); if(panicCount>=3) window.location.href="about:blank"; return; }
+            if (isResultMode || !pendingOp) {
+                if (Date.now() - lastPanic < 2000) panicCount++; else panicCount = 1;
+                lastPanic = Date.now();
+                if (panicCount >= 3) window.location.href = "about:blank";
+                return;
+            }
             let t = getTarget();
-            let force = armed && ((config.mode==='REVELACION_PASO_A_PASO' && revealIdx>=t.length) || (targetStr && revealIdx>=targetStr.length));
-            if(force) { history+=" "+display; display=format(parseFloat(t.replace(/\./g,'').replace(',','.'))); armed=false; }
-            else { let cur=parseFloat(display.replace(/\./g,'').replace(',','.')); display=format(op(prevVal,cur,pendingOp)); history+=" "+format(cur); }
-            prevVal=null; pendingOp=null; startFresh=true; isResultMode=true; updateDisplay();
+            let force = armed && ((config.mode === 'REVELACION_PASO_A_PASO' && revealIdx >= t.length) || (targetStr && revealIdx >= targetStr.length));
+
+            if (force) {
+                history += " " + display;
+                let finalVal = parseFloat(t.replace(/\./g, '').replace(',', '.'));
+                display = isNaN(finalVal) ? t : format(finalVal);
+                armed = false;
+            } else {
+                let raw = display.replace(/\./g, '').replace(',', '.');
+                let cur = parseFloat(raw) || 0;
+                let res = calculate(prevVal, cur, pendingOp);
+                history += " " + format(cur);
+                display = format(res);
+            }
+            prevVal = null; pendingOp = null; startFresh = true; isResultMode = true; updateDisplay();
         }
 
-        function onClear() { display="0"; history=""; prevVal=null; pendingOp=null; startFresh=true; isResultMode=false; armed=false; targetStr=""; revealIdx=0; updateDisplay(); }
-        function acStart() { acTimer=setTimeout(()=>{document.getElementById('settings-modal').style.display='flex';},2000); }
+        function onClear() {
+            display = "0"; history = ""; prevVal = null; pendingOp = null;
+            startFresh = true; isResultMode = false; armed = false;
+            targetStr = ""; revealIdx = 0;
+            updateDisplay();
+        }
+
+        function onBackspace() {
+            if (startFresh || isResultMode) return;
+            display = display.length > 1 ? display.slice(0, -1) : "0";
+            updateDisplay();
+        }
+
+        function onDot() {
+            if (isResultMode) { onClear(); display = "0,"; startFresh = false; return; }
+            if (startFresh) { display = "0,"; startFresh = false; }
+            else if (!display.includes(',')) display += ",";
+            updateDisplay();
+        }
+
+        function onDoubleTap() {
+            let now = Date.now();
+            if (now - lastTap < 300) { armed = !armed; revealIdx = 0; targetStr = ""; updateDisplay(); }
+            lastTap = now;
+        }
+
+        function acStart() { acTimer = setTimeout(() => { document.getElementById('settings-modal').style.display = 'flex'; }, 2000); }
         function acEnd() { clearTimeout(acTimer); }
-        function onBackspace() { if(startFresh||isResultMode) return; display=display.length>1?display.slice(0,-1):"0"; updateDisplay(); }
-        function onDot() { if(isResultMode) { onClear(); display="0,"; startFresh=false; return; } if(startFresh) { display="0,"; startFresh=false; } else if(!display.includes(',')) display+=","; updateDisplay(); }
-        function onDoubleTap() { let now=Date.now(); if(now-lastTap<300){ armed=!armed; revealIdx=0; targetStr=""; updateDisplay(); } lastTap=now; }
-        function closeWelcome() { document.getElementById('welcome-modal').style.display='none'; }
-        function disableWelcome() { config.hideWelcome=true; saveSettings(); closeWelcome(); }
-        function chOff(v) { config.offset+=v; document.getElementById('off-disp').innerText=config.offset+" min"; }
+
+        function chOff(v) { config.offset += v; document.getElementById('off-disp').innerText = config.offset + " min"; }
+
         function toggleUI() {
             const m = document.getElementById('set-mode').value;
-            document.getElementById('ui-time').style.display = (m==='FECHA_HORA')?'block':'none';
-            document.getElementById('ui-fixed').style.display = (m==='RESULTADO_FIJO')?'block':'none';
-            document.getElementById('ui-secret').style.display = (m==='REVELACION_PASO_A_PASO')?'block':'none';
+            document.getElementById('ui-time').style.display = (m === 'FECHA_HORA') ? 'block' : 'none';
+            document.getElementById('ui-fixed').style.display = (m === 'RESULTADO_FIJO') ? 'block' : 'none';
+            document.getElementById('ui-secret').style.display = (m === 'REVELACION_PASO_A_PASO') ? 'block' : 'none';
+            document.getElementById('set-fixed').value = config.fixed;
+            document.getElementById('set-secret').value = config.secret;
+            document.getElementById('off-disp').innerText = config.offset + " min";
         }
+
         function saveSettings() {
-            config.style=document.getElementById('set-style').value; config.isWhite=document.getElementById('set-white').checked;
-            config.mode=document.getElementById('set-mode').value; config.fixed=document.getElementById('set-fixed').value; config.secret=document.getElementById('set-secret').value;
-            localStorage.setItem('pf_v3', JSON.stringify(config)); document.getElementById('settings-modal').style.display='none'; applyTheme();
+            config.style = document.getElementById('set-style').value;
+            config.isWhite = document.getElementById('set-white').checked;
+            config.mode = document.getElementById('set-mode').value;
+            config.fixed = document.getElementById('set-fixed').value;
+            config.secret = document.getElementById('set-secret').value;
+            localStorage.setItem('pf_v4', JSON.stringify(config));
+            document.getElementById('settings-modal').style.display = 'none';
+            applyTheme();
         }
     </script>
 </body>
